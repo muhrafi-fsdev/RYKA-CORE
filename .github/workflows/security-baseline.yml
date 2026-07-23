@@ -21,8 +21,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Install exact direct dependencies
-        run: npm install --no-audit --no-fund
+          cache-dependency-path: package-lock.json
+
+      - name: Install exact dependencies
+        run: npm ci --no-audit --no-fund
       - name: Static hardening self-check
         run: npm run security:static
       - name: Dependency vulnerability audit
