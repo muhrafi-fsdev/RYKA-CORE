@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+﻿import { readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, join, relative, resolve } from "node:path";
 import process from "node:process";
 
@@ -69,7 +69,7 @@ const secretPatterns = [
 
 for (const file of files) {
   const content = readFileSync(file, "utf8");
-  const rel = relative(root, file);
+  const rel = relative(root, file).replaceAll("\\", "/");
   if (rel === "scripts/security-self-check.mjs") continue;
   if (/\beval\s*\(/.test(content)) fail(`eval() found in ${rel}`);
   if (/new\s+Function\s*\(/.test(content)) fail(`new Function() found in ${rel}`);
@@ -97,3 +97,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log("[SECURITY CHECK] PASS // RYKA CORE hardening baseline satisfied.");
+
