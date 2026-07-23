@@ -1,0 +1,50 @@
+RYKA CORE 4.4 PERSONAL ACCESS & PARTNER COMMUNICATION
+Developer: Muhammad Rafi Priyo
+Validation date: 2026-07-23
+
+PASSED
+- TypeScript/TSX syntax transpilation: 37 source/config files, 0 syntax diagnostics
+- Focused TypeScript semantic check using local React/tool stubs
+- Node.js syntax check for all scripts/*.mjs
+- CSS brace structure check
+- RYKA Access 4.4 marker and helper runtime validation
+- Compatibility validation for legacy Rafi HandMotion features
+- Security static self-check
+- Secure Desktop Bridge session/HMAC/replay/emergency-stop/re-arm test
+- Accessibility helper runtime test: append, remove-last-word, body pain phrase, core vocabulary, categories
+
+RYKA ACCESS 4.4 FEATURES VERIFIED IN SOURCE
+- Personal Needs Setup
+- Touch/mouse input
+- Keyboard number selection
+- Single-switch scanning using Space/Enter
+- Dwell selection
+- Stable Core Vocabulary
+- Gesture-to-Text and Quick Phrase Board
+- Partner Display fullscreen and rotate 180 degrees
+- Communication Partner Guide
+- User, Caregiver, and Professional role modes
+- Low-tech communication card TXT and browser print/PDF
+- Live Caption speaker label, confidence, scale, and TXT export
+- Private Session and history auto-delete
+- Health phrase category and body map
+- Profile import allowlist, file-size limit, type checking, and value clamping
+
+NOT RUN IN THIS ENVIRONMENT
+- Full npm install (registry/download process exceeded the environment timeout)
+- Vitest through installed project dependencies
+- Vite production build through installed project dependencies
+- Real camera, microphone, Web Speech Recognition, Windows TTS, touch screen, and physical switch hardware tests
+
+RUN ON WINDOWS AFTER EXTRACTION
+npm install
+npm run validate:access
+npm run validate:compat
+npm run security:check
+
+LIMITATIONS
+- Single-switch currently uses keyboard Space/Enter, not dedicated HID switch hardware.
+- Dwell uses pointer hover, not head/eye tracking.
+- Live Caption depends on browser/OS support and may require online services.
+- Visual Sound Alert detects loudness only and does not classify sound events.
+- RYKA Access is not a BISINDO/SIBI translator, medical device, or diagnostic system.

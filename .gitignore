@@ -1,0 +1,32 @@
+node_modules
+
+# build artifacts
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+dist
+
+# env
+.env
+.env.local
+.env.*.local
+
+# OS / editor
+.DS_Store
+*.log
+
+# RYKA security runtime files
+logs/
+.ryka-bridge-token
+*.hold
+*.key
+*.pem
+
+# RYKA CORE runtime/security files
+logs/
+*.jsonl
+.env
+.env.*
+!.env.example

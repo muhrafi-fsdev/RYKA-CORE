@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-labelledby="title desc">
+  <title id="title">RYKA CORE</title>
+  <desc id="desc">Blue futuristic hand motion and secure desktop control interface.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.52" stop-color="#07172d"/>
+      <stop offset="1" stop-color="#03152b"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#dff8ff" stop-opacity="0.98"/>
+      <stop offset="0.14" stop-color="#67e8f9" stop-opacity="0.92"/>
+      <stop offset="0.42" stop-color="#0ea5e9" stop-opacity="0.64"/>
+      <stop offset="0.72" stop-color="#2563eb" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="12" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M 42 0 L 0 0 0 42" fill="none" stroke="#38bdf8" stroke-opacity="0.08" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1400" height="420" rx="32" fill="url(#bg)"/>
+  <rect width="1400" height="420" rx="32" fill="url(#grid)"/>
+  <g opacity="0.55">
+    <path d="M0 325 C260 245 415 370 700 298 C985 226 1165 330 1400 250" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+    <path d="M0 346 C270 272 446 390 712 320 C1010 242 1170 354 1400 276" fill="none" stroke="#22d3ee" stroke-opacity="0.45" stroke-width="1"/>
+  </g>
+  <g transform="translate(1110 205)" filter="url(#glow)">
+    <circle r="154" fill="url(#orb)" opacity="0.95"/>
+    <circle r="102" fill="none" stroke="#67e8f9" stroke-opacity="0.75" stroke-width="2"/>
+    <ellipse rx="138" ry="50" fill="none" stroke="#38bdf8" stroke-opacity="0.7" stroke-width="2" transform="rotate(-18)"/>
+    <ellipse rx="128" ry="42" fill="none" stroke="#2563eb" stroke-opacity="0.72" stroke-width="2" transform="rotate(62)"/>
+    <circle r="48" fill="none" stroke="#e0f2fe" stroke-opacity="0.85" stroke-width="2"/>
+    <circle r="8" fill="#e0f2fe"/>
+  </g>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="86" y="150" fill="#e0f2fe" font-size="34" font-weight="700" letter-spacing="10">SECURE GESTURE INTERFACE</text>
+    <text x="80" y="248" fill="#ffffff" font-size="96" font-weight="900" letter-spacing="5">RYKA CORE</text>
+    <text x="86" y="304" fill="#67e8f9" font-size="28" font-weight="600" letter-spacing="3">MEDIAPIPE • WINDOWS CONTROL • BLUE HOLOGRAPHIC HUD</text>
+    <text x="87" y="357" fill="#94a3b8" font-size="21">Developed by Muhammad Rafi Priyo</text>
+  </g>
+  <rect x="1" y="1" width="1398" height="418" rx="31" fill="none" stroke="#38bdf8" stroke-opacity="0.28" stroke-width="2"/>
+</svg>

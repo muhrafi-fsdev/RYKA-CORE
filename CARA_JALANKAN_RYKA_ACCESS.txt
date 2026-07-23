@@ -1,0 +1,51 @@
+RYKA CORE 4.4 - PERSONAL ACCESS & PARTNER COMMUNICATION
+Developer: Muhammad Rafi Priyo
+
+CARA TERMUDAH
+1. Ekstrak ZIP sampai terlihat folder ryka-core.
+2. Buka folder ryka-core.
+3. Pastikan package.json dan START_ACCESS.bat terlihat.
+4. Klik dua kali START_ACCESS.bat.
+5. Pada penggunaan pertama, tunggu npm install selesai.
+6. Browser membuka http://localhost:3200/?mode=access
+7. Selesaikan PERSONAL NEEDS SETUP.
+8. Izinkan kamera hanya bila memakai Gesture-to-Text.
+9. Izinkan mikrofon hanya saat memakai Live Caption atau Visual Sound Alert.
+
+CARA POWERSHELL
+npm install
+npm run dev
+
+Buka:
+http://localhost:3200/?mode=access
+
+MENU RYKA ACCESS 4.4
+- KOMUNIKASI: Core Vocabulary, Quick Phrase Board, TTS, favorit, dan riwayat.
+- CAPTION: Live Caption, label pembicara, export transkrip, Conversation Mode.
+- PERSONAL ACCESS: Personal Needs Setup, metode input alternatif, role mode, low-tech fallback.
+- PARTNER DISPLAY: Tampilan besar untuk lawan bicara dan panduan komunikasi.
+- PROFIL GESTUR: Mapping gestur ke kalimat pribadi.
+- SETTINGS: Tampilan, switch scanning, dwell selection, TTS, dan Privacy Center.
+
+METODE INPUT
+- Touch / Mouse: klik seperti biasa.
+- Keyboard: angka 1-9 memilih quick phrase.
+- Single-switch: sorotan berjalan otomatis; tekan Space atau Enter.
+- Dwell: arahkan pointer pada tombol dan tahan.
+- Gesture: gunakan mapping Gesture-to-Text.
+
+SHORTCUT
+Alt + S = Bacakan pesan
+Alt + P = Partner Display
+Escape  = Tutup layar penuh/dialog
+
+PENTING
+- Tidak terhubung ke NusaMind AI.
+- Belum menerjemahkan BISINDO/SIBI.
+- Bukan perangkat medis atau alat diagnosis.
+- Audio dan video tidak direkam atau disimpan secara default.
+- Visual Sound Alert masih membaca level suara, bukan jenis suara.
+- Tombol darurat tidak otomatis menelepon atau mengirim lokasi.
+
+MENGHENTIKAN
+Kembali ke terminal lalu tekan Ctrl + C.
