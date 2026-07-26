@@ -1,0 +1,98 @@
+.ryka-feature-nav {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100vw - 24px);
+  padding: 5px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.82);
+  box-shadow:
+    0 16px 40px rgba(2, 6, 23, 0.44),
+    inset 0 0 24px rgba(14, 165, 233, 0.06);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.ryka-feature-nav__brand,
+.ryka-feature-nav__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.78);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.ryka-feature-nav__brand {
+  color: #7dd3fc;
+  pointer-events: none;
+}
+
+.ryka-feature-nav__item:hover,
+.ryka-feature-nav__item:focus-visible {
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.14);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.ryka-feature-nav__item.is-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.92), rgba(8, 145, 178, 0.86));
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.26);
+}
+
+/* Keep the persistent navbar from covering the RYKA Access header. */
+.ryka-access {
+  box-sizing: border-box;
+  padding-top: 64px;
+}
+
+@media (max-width: 640px) {
+  .ryka-feature-nav {
+    top: 8px;
+    width: calc(100vw - 16px);
+    justify-content: center;
+  }
+
+  .ryka-feature-nav__brand {
+    display: none;
+  }
+
+  .ryka-feature-nav__item {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+
+  .ryka-access {
+    padding-top: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ryka-feature-nav__item {
+    transition: none;
+  }
+}

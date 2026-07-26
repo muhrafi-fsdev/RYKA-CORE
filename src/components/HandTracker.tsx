@@ -372,7 +372,10 @@ export default function HandTracker() {
   );
   const [accessOpen, setAccessOpen] = useState(() => {
     if (typeof window === "undefined") return false;
-    return new URLSearchParams(window.location.search).get("mode") === "access";
+    return (
+      window.location.pathname === "/access" ||
+      new URLSearchParams(window.location.search).get("mode") === "access"
+    );
   });
   const [accessGesture, setAccessGesture] = useState<{
     id: number;
@@ -1443,7 +1446,7 @@ export default function HandTracker() {
             disabled={camera === "starting"}
           >
             {camera === "starting"
-              ? "INITIALIZING…"
+              ? "INITIALIZINGâ€¦"
               : camera === "on"
                 ? "GESTURES ON"
                 : "GESTURES OFF"}
@@ -1478,7 +1481,7 @@ export default function HandTracker() {
             className="ultron-button"
             onClick={() => sceneRef.current?.zoomOut()}
           >
-            −
+            âˆ’
           </button>
           <button
             type="button"
@@ -1497,7 +1500,7 @@ export default function HandTracker() {
             <small>ACCESSIBILITY + LEGACY VISUALS + HMAC SECURITY + WINDOWS BRIDGE</small>
           </div>
           <button type="button" onClick={() => setPanelOpen(false)}>
-            ×
+            Ã—
           </button>
         </div>
 
@@ -1605,8 +1608,8 @@ export default function HandTracker() {
           <section className="ultron-panel-section">
             <h2>RAFI HANDMOTION COMPATIBILITY</h2>
             <p className="ultron-safety-note">
-              Legacy controls are preserved: 1–4 hands, skeleton, landmarks,
-              mirror, Blur, Mosaic, and Flip 180°. All settings persist locally.
+              Legacy controls are preserved: 1â€“4 hands, skeleton, landmarks,
+              mirror, Blur, Mosaic, and Flip 180Â°. All settings persist locally.
             </p>
             <div className="ultron-camera-config">
               <label>
@@ -1678,7 +1681,7 @@ export default function HandTracker() {
                   <option value="auto">AUTO // THUMB DIRECTION</option>
                   <option value="blur">BLUR</option>
                   <option value="mosaic">MOSAIC</option>
-                  <option value="flip">FLIP 180°</option>
+                  <option value="flip">FLIP 180Â°</option>
                 </select>
               </label>
               <label>
@@ -1723,7 +1726,7 @@ export default function HandTracker() {
               />
             </label>
             <label>
-              <span>MOTION SMOOTHING // 1€ FILTER</span>
+              <span>MOTION SMOOTHING // 1â‚¬ FILTER</span>
               <strong>{motionSmoothing}%</strong>
               <input
                 type="range"
@@ -1772,9 +1775,9 @@ export default function HandTracker() {
                     setQuality(value);
                   }}
                 >
-                  <option value="performance">PERFORMANCE // 640×360</option>
-                  <option value="balanced">BALANCED // 960×540</option>
-                  <option value="quality">QUALITY // 1280×720</option>
+                  <option value="performance">PERFORMANCE // 640Ã—360</option>
+                  <option value="balanced">BALANCED // 960Ã—540</option>
+                  <option value="quality">QUALITY // 1280Ã—720</option>
                 </select>
               </label>
               <label className="ultron-check-row">
@@ -1952,7 +1955,12 @@ export default function HandTracker() {
         open={accessOpen}
         cameraOn={camera === "on"}
         latestGesture={accessGesture}
-        onClose={() => setAccessOpen(false)}
+        onClose={() => {
+          setAccessOpen(false);
+          if (window.location.pathname === "/access") {
+            window.location.assign("/");
+          }
+        }}
         onToggleCamera={toggleGestures}
       />
     </main>

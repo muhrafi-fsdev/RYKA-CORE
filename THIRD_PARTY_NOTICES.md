@@ -25,3 +25,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+## Puzzle Cam
+
+- Original project: `Shafira0605/puzzle_cam`
+- Source: https://github.com/Shafira0605/puzzle_cam
+- Integration: RYKA CORE module for Muhammad Rafi Priyo
+- Attribution and licensing note: `public/puzzle-cam/NOTICE.md`
+
+The supplied Puzzle Cam archive did not contain a LICENSE file. Preserve the
+original attribution and confirm permission before commercial redistribution.

@@ -8,6 +8,7 @@ import { ThemeProvider } from '../providers/ThemeProvider'
 import { Toaster } from 'react-hot-toast'
 import ErrorPage from '../components/ErrorPage'
 import NotFoundPage from '../components/NotFoundPage'
+import RykaFeatureNav from '../components/RykaFeatureNav'
 
 import appCss from '../styles.css?url'
 
@@ -38,7 +39,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         httpEquiv: 'Content-Security-Policy',
-        content: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' http://127.0.0.1:3210 http://localhost:3210 ws://127.0.0.1:3200 ws://localhost:3200 https://cdn.jsdelivr.net https://storage.googleapis.com;",
+        content: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'self'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' http://127.0.0.1:3210 http://localhost:3210 ws://127.0.0.1:3200 ws://localhost:3200 https://cdn.jsdelivr.net https://storage.googleapis.com;",
       },
     ],
     links: [
@@ -97,6 +98,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               },
             }}
           />
+          <RykaFeatureNav />
           {children}
         </ThemeProvider>
         <Scripts />

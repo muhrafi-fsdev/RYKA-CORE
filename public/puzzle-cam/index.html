@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#020617" />
+  <title>RYKA Motion Puzzle Lab</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('ryka-embed') === '1') document.documentElement.classList.add('is-embedded')
+      const signalParent = () => {
+        try {
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'ryka:puzzle-shell-ready', version: 2 }, window.location.origin)
+          }
+        } catch (_) {}
+      }
+      signalParent()
+      window.setTimeout(signalParent, 100)
+      window.setTimeout(signalParent, 750)
+      window.setTimeout(signalParent, 2000)
+    })()
+  </script>
+</head>
+<body>
+  <div id="landingPage" class="screen landing-screen">
+    <header class="module-header">
+      <div class="module-brand">
+        <span class="module-brand__mark" aria-hidden="true">R</span>
+        <div>
+          <strong>RYKA MOTION LAB</strong>
+          <small>Creative gesture module</small>
+        </div>
+      </div>
+      <div class="module-health" aria-label="Status modul">
+        <span class="health-dot"></span>
+        Local browser session
+      </div>
+    </header>
+
+    <main class="landing-main">
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">GESTURE PHOTO EXPERIENCE / V2</span>
+          <h1>CAPTURE.<br /><span>SOLVE.</span> CREATE.</h1>
+          <p>
+            Ubah kamera menjadi ruang kreatif interaktif: ambil foto dengan gestur,
+            susun puzzle, lalu rakit hasilnya menjadi photo strip personal.
+          </p>
+          <div class="hero-actions">
+            <button id="landingStartBtn" class="primary-action" type="button">
+              <span>Mulai sesi</span>
+              <span aria-hidden="true">→</span>
+            </button>
+            <button class="secondary-action" type="button" data-scroll-target="capabilities">
+              Lihat kemampuan
+            </button>
+          </div>
+          <div class="privacy-line">
+            <span aria-hidden="true">◈</span>
+            Kamera diproses di perangkat dan tidak direkam otomatis.
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Preview alur Puzzle Cam">
+          <div class="visual-orbit visual-orbit--one"></div>
+          <div class="visual-orbit visual-orbit--two"></div>
+          <div class="visual-core">
+            <div class="core-grid" aria-hidden="true">
+              <span></span><span></span><span></span>
+              <span></span><span class="is-focus"></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="core-label">
+              <small>ACTIVE WORKFLOW</small>
+              <strong>HAND → FRAME → PUZZLE</strong>
+            </div>
+          </div>
+          <article class="floating-chip floating-chip--a">
+            <span>01</span>
+            <strong>Gesture Capture</strong>
+          </article>
+          <article class="floating-chip floating-chip--b">
+            <span>02</span>
+            <strong>Sliding Puzzle</strong>
+          </article>
+          <article class="floating-chip floating-chip--c">
+            <span>03</span>
+            <strong>Photo Composer</strong>
+          </article>
+        </div>
+      </section>
+
+      <section id="capabilities" class="capability-grid">
+        <article>
+          <span class="capability-number">01</span>
+          <h2>Gesture Capture</h2>
+          <p>Kepalkan tangan untuk memulai countdown dan mengambil frame kamera.</p>
+        </article>
+        <article>
+          <span class="capability-number">02</span>
+          <h2>Motion Puzzle</h2>
+          <p>Gunakan pinch untuk memindahkan potongan puzzle secara langsung.</p>
+        </article>
+        <article>
+          <span class="capability-number">03</span>
+          <h2>Creative Output</h2>
+          <p>Pilih filter, susun photo strip, tambahkan border, stiker, dan catatan.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="welcomeScreen" class="screen setup-screen hidden">
+    <header class="setup-header">
+      <button class="back-button" type="button" data-go-screen="landingPage">← Kembali</button>
+      <div>
+        <span class="eyebrow">SESSION CONFIGURATION</span>
+        <h1>Siapkan Puzzle Cam</h1>
+        <p>Atur tingkat puzzle, jumlah foto, dan gaya visual sebelum kamera aktif.</p>
+      </div>
+      <span class="setup-step">STEP 01 / 03</span>
+    </header>
+
+    <main class="setup-layout">
+      <section class="setup-panel">
+        <div class="section-heading">
+          <span>01</span>
+          <div><h2>Tingkat puzzle</h2><p>Pilih jumlah potongan yang nyaman.</p></div>
+        </div>
+        <div id="gridSizeSelector" class="choice-grid choice-grid--two">
+          <button class="choice-card grid-btn border-primary shadow-lg" data-grid="3" type="button">
+            <span class="active-indicator opacity-100"></span>
+            <strong>3 × 3</strong><small>9 potongan · santai</small>
+            <div class="mini-grid mini-grid--3" aria-hidden="true"></div>
+          </button>
+          <button class="choice-card grid-btn border-outline-variant/20 shadow-sm" data-grid="4" type="button">
+            <span class="active-indicator opacity-0"></span>
+            <strong>4 × 4</strong><small>16 potongan · menantang</small>
+            <div class="mini-grid mini-grid--4" aria-hidden="true"></div>
+          </button>
+        </div>
+      </section>
+
+      <section class="setup-panel">
+        <div class="section-heading">
+          <span>02</span>
+          <div><h2>Jumlah frame</h2><p>Tentukan panjang photo strip.</p></div>
+        </div>
+        <div id="layoutSelector" class="choice-grid choice-grid--three">
+          <button class="choice-card compact layout-btn border-outline-variant/20 shadow-sm" data-layout="2" type="button">
+            <span class="active-indicator opacity-0"></span><strong>2 Frame</strong><small>Cepat</small>
+          </button>
+          <button class="choice-card compact layout-btn border-primary shadow-lg" data-layout="3" type="button">
+            <span class="active-indicator opacity-100"></span><strong>3 Frame</strong><small>Standar</small>
+          </button>
+          <button class="choice-card compact layout-btn border-outline-variant/20 shadow-sm" data-layout="4" type="button">
+            <span class="active-indicator opacity-0"></span><strong>4 Frame</strong><small>Lengkap</small>
+          </button>
+        </div>
+      </section>
+
+      <section id="filterSelector" class="setup-panel setup-panel--wide">
+        <div class="section-heading">
+          <span>03</span>
+          <div><h2>Filter kamera</h2><p>Pilih karakter warna untuk hasil akhir.</p></div>
+        </div>
+        <div class="filter-grid">
+          <button class="filter-btn bg-on-surface-variant text-white border-transparent" data-filter="none" type="button"><i class="filter-swatch filter-swatch--none"></i><span>Natural</span></button>
+          <button class="filter-btn bg-surface-container-highest text-on-surface border-outline/20" data-filter="bw" type="button"><i class="filter-swatch filter-swatch--bw"></i><span>Mono</span></button>
+          <button class="filter-btn bg-surface-container-highest text-on-surface border-outline/20" data-filter="vintage" type="button"><i class="filter-swatch filter-swatch--vintage"></i><span>Retro</span></button>
+          <button class="filter-btn bg-surface-container-highest text-on-surface border-outline/20" data-filter="korean" type="button"><i class="filter-swatch filter-swatch--soft"></i><span>Soft</span></button>
+          <button class="filter-btn bg-surface-container-highest text-on-surface border-outline/20" data-filter="warm" type="button"><i class="filter-swatch filter-swatch--warm"></i><span>Warm</span></button>
+          <button class="filter-btn bg-surface-container-highest text-on-surface border-outline/20" data-filter="cool" type="button"><i class="filter-swatch filter-swatch--cool"></i><span>Cool</span></button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="setup-footer">
+      <div><strong>READY CHECK</strong><span>Browser akan meminta izin kamera setelah tutorial.</span></div>
+      <button id="startBtn" class="primary-action" type="button">Lanjut ke tutorial <span>→</span></button>
+    </footer>
+  </div>
+
+  <div id="tutorialScreen" class="modal-screen hidden" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+    <div class="tutorial-card">
+      <span class="eyebrow">GESTURE QUICK GUIDE</span>
+      <h2 id="tutorialTitle">Kontrol dengan tanganmu</h2>
+      <div class="tutorial-grid">
+        <article><span class="gesture-symbol">✊</span><strong>Kepal tangan</strong><p>Tahan sebentar untuk memulai countdown foto.</p></article>
+        <article><span class="gesture-symbol">🤏</span><strong>Pinch & drag</strong><p>Jepit telunjuk dan ibu jari untuk menggeser puzzle.</p></article>
+        <article><span class="gesture-symbol">🖐</span><strong>Gerak natural</strong><p>Jaga tangan tetap terlihat dan pencahayaan cukup.</p></article>
+      </div>
+      <p id="engineStatus" class="engine-status" aria-live="polite">Menyiapkan engine lokal…</p>
+      <button id="tutorialGotItBtn" class="primary-action" type="button">Aktifkan kamera</button>
+    </div>
+  </div>
+
+  <div id="app" class="camera-screen" style="display:none">
+    <div id="stage">
+      <video id="webcam" playsinline autoplay muted></video>
+      <canvas id="sceneCanvas"></canvas>
+
+      <header class="camera-hud camera-hud--top">
+        <div class="camera-brand"><span>RYKA</span><strong>MOTION PUZZLE</strong></div>
+        <div class="camera-controls">
+          <button id="fullscreenBtn" type="button" aria-label="Fullscreen"><span id="fullscreenIcon">⛶</span></button>
+          <div class="status-chip"><span id="statusDot" class="status-dot"></span><span id="statusText">menyiapkan kamera…</span></div>
+        </div>
+      </header>
+
+      <aside id="progressOverlay" class="gallery-panel" style="display:none">
+        <div class="gallery-panel__header"><span>PHOTO QUEUE</span><strong id="galleryCount">0 / 3</strong></div>
+        <div id="galleryStrip" class="gallery-strip"><div id="galleryEmpty" class="gallery-empty">Belum ada frame</div></div>
+        <div id="stripCompleteMsg" class="strip-complete">Strip lengkap · membuka editor</div>
+        <div class="gallery-actions">
+          <button id="downloadStripBtn" type="button" disabled>Unduh strip</button>
+          <button id="resetAllBtn" type="button">Reset</button>
+        </div>
+      </aside>
+
+      <div id="progressBadge" class="progress-badge"><span>PUZZLE</span><strong id="progressText">0 / 9 pieces placed</strong></div>
+      <div id="puzzleSolvedBanner" class="solved-banner hidden">PUZZLE COMPLETE</div>
+      <div id="countdownOverlay" class="countdown-overlay"></div>
+
+      <div id="loadingOverlay" class="camera-loader">
+        <div class="loader-ring"></div>
+        <strong id="loaderText">Menyiapkan MediaPipe dan kamera…</strong>
+        <p>Proses pertama dapat memerlukan waktu karena model tangan dimuat dari internet.</p>
+        <button id="loaderRetry" class="hidden" type="button">Coba lagi</button>
+      </div>
+      <div id="errorBanner" class="camera-error" style="display:none"></div>
+
+      <footer class="camera-hud camera-hud--bottom">
+        <div><kbd>✊</kbd><span>Tahan untuk foto</span></div>
+        <div><kbd>🤏</kbd><span>Geser puzzle</span></div>
+        <div><kbd>ESC</kbd><span>Keluar fullscreen</span></div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="printingScreen" class="screen printing-screen hidden">
+    <div class="print-machine">
+      <span class="eyebrow">RYKA OUTPUT ENGINE</span>
+      <h2>Menyusun photo strip</h2>
+      <div class="print-slot"><img id="printingImage" class="printing-image -translate-y-[120%]" alt="Preview photo strip" /></div>
+      <div class="print-progress"><span></span></div>
+      <p>Menyiapkan hasil untuk editor kreatif…</p>
+    </div>
+  </div>
+
+  <div id="editPhotoScreen" class="screen editor-screen hidden">
+    <header class="editor-header">
+      <div><span class="eyebrow">CREATIVE OUTPUT</span><h1>Photo Strip Editor</h1></div>
+      <button id="skipEditBtnTop" type="button">Lewati editor</button>
+    </header>
+
+    <main class="editor-layout">
+      <section class="editor-canvas-wrap">
+        <div id="photoStrip" class="editor-canvas-shell"><canvas id="editCanvas"></canvas></div>
+        <div id="trashBin" class="trash-zone opacity-70 bg-error-container text-on-error-container border-error/50">Lepaskan stiker di sini untuk menghapus</div>
+      </section>
+
+      <aside class="editor-tools">
+        <section>
+          <h2>Border</h2>
+          <div id="borderOptions" class="border-options">
+            <button class="border-btn border-primary" data-border="#ffffff" type="button" style="--swatch:#ffffff" aria-label="Putih"></button>
+            <button class="border-btn border-transparent" data-border="#dbeafe" type="button" style="--swatch:#dbeafe" aria-label="Biru muda"></button>
+            <button class="border-btn border-transparent" data-border="#bae6fd" type="button" style="--swatch:#bae6fd" aria-label="Cyan"></button>
+            <button class="border-btn border-transparent" data-border="#111827" type="button" style="--swatch:#111827" aria-label="Gelap"></button>
+            <button class="border-btn border-transparent" data-border="#fde68a" type="button" style="--swatch:#fde68a" aria-label="Kuning"></button>
+          </div>
+        </section>
+        <section>
+          <h2>Stiker</h2>
+          <div class="sticker-options">
+            <button class="sticker-btn" type="button">⭐</button>
+            <button class="sticker-btn" type="button">💙</button>
+            <button class="sticker-btn" type="button">⚡</button>
+            <button class="sticker-btn" type="button">✨</button>
+            <button class="sticker-btn" type="button">📸</button>
+          </div>
+        </section>
+        <section>
+          <h2>Catatan</h2>
+          <input class="typewriter-input" type="text" maxlength="48" placeholder="Tulis caption singkat…" />
+        </section>
+        <div class="editor-actions">
+          <button id="skipEditBtn" type="button">Selesai tanpa unduh</button>
+          <button id="savePhotoBtn" class="primary-action" type="button">Simpan hasil</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="debug-error" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const screens = ['landingPage', 'welcomeScreen', 'app', 'printingScreen', 'editPhotoScreen']
+      const engineStatus = document.getElementById('engineStatus')
+      const tutorialButton = document.getElementById('tutorialGotItBtn')
+
+      window.navigateToScreen = function (screenId, pushHistory = true) {
+        screens.forEach((id) => {
+          const element = document.getElementById(id)
+          if (!element) return
+          const active = id === screenId
+          element.classList.toggle('hidden', !active)
+          element.style.display = active ? 'flex' : 'none'
+        })
+        if (pushHistory) history.pushState({ screen: screenId }, '', window.location.pathname + window.location.search)
+        if (typeof window.onScreenChange === 'function') window.onScreenChange(screenId)
+      }
+
+      const setEngineStatus = (message, state = 'loading') => {
+        if (!engineStatus) return
+        engineStatus.textContent = message
+        engineStatus.dataset.state = state
+      }
+
+      const waitForEngine = (timeoutMs = 8000) => new Promise((resolve) => {
+        if (window.RykaPuzzleCam?.start) return resolve(window.RykaPuzzleCam)
+        let settled = false
+        const finish = () => {
+          if (settled) return
+          settled = true
+          window.removeEventListener('ryka:puzzle-engine-ready', onReady)
+          resolve(window.RykaPuzzleCam?.start ? window.RykaPuzzleCam : null)
+        }
+        const onReady = () => finish()
+        window.addEventListener('ryka:puzzle-engine-ready', onReady, { once: true })
+        window.setTimeout(finish, timeoutMs)
+      })
+
+      if (!history.state) history.replaceState({ screen: 'landingPage' }, '', window.location.href)
+      window.addEventListener('popstate', (event) => window.navigateToScreen(event.state?.screen || 'landingPage', false))
+
+      document.getElementById('landingStartBtn')?.addEventListener('click', () => window.navigateToScreen('welcomeScreen'))
+      document.querySelectorAll('[data-go-screen]').forEach((button) => {
+        button.addEventListener('click', () => window.navigateToScreen(button.getAttribute('data-go-screen')))
+      })
+      document.querySelectorAll('[data-scroll-target]').forEach((button) => {
+        button.addEventListener('click', () => document.getElementById(button.getAttribute('data-scroll-target'))?.scrollIntoView({ behavior: 'smooth' }))
+      })
+
+      document.getElementById('startBtn')?.addEventListener('click', () => {
+        const tutorial = document.getElementById('tutorialScreen')
+        if (tutorial) {
+          tutorial.classList.remove('hidden')
+          tutorial.style.display = 'flex'
+        }
+        setEngineStatus(window.RykaPuzzleCam?.start ? 'Engine siap. Kamera akan meminta izin setelah tombol ditekan.' : 'Memuat engine Puzzle Cam…')
+      })
+
+      window.addEventListener('ryka:puzzle-engine-ready', () => {
+        setEngineStatus('Engine siap. Kamera akan meminta izin setelah tombol ditekan.', 'ready')
+      })
+
+      tutorialButton?.addEventListener('click', async () => {
+        tutorialButton.disabled = true
+        const originalText = tutorialButton.textContent
+        tutorialButton.textContent = 'Menyiapkan engine…'
+        setEngineStatus('Memeriksa engine dan aset MediaPipe…')
+
+        const engine = await waitForEngine()
+        if (!engine) {
+          setEngineStatus('Engine gagal dimuat. Pastikan hotfix V3 terpasang dan lakukan Ctrl + Shift + R.', 'error')
+          tutorialButton.disabled = false
+          tutorialButton.textContent = originalText
+          return
+        }
+
+        const tutorial = document.getElementById('tutorialScreen')
+        if (tutorial) {
+          tutorial.style.display = 'none'
+          tutorial.classList.add('hidden')
+        }
+        tutorialButton.disabled = false
+        tutorialButton.textContent = originalText
+        await engine.start()
+      })
+    })()
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

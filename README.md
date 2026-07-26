@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/ryka-core-banner.svg" alt="RYKA CORE — Secure Gesture Interface" width="100%" />
+  <img src="docs/ryka-core-banner.svg" alt="RYKA CORE â€” Secure Gesture Interface" width="100%" />
 
   <br />
 
@@ -12,9 +12,9 @@
   <h3>Antarmuka kontrol gestur dengan modul komunikasi aksesibel, HUD holografik biru, dan Desktop Bridge yang diperkeras.</h3>
 
   <p>
-    <strong>MediaPipe hand tracking</strong> • <strong>Three.js orb</strong> •
-    <strong>gesture-to-text</strong> • <strong>quick phrase board</strong> •
-    <strong>live caption</strong> • <strong>text-to-speech</strong> • <strong>HMAC-secured local bridge</strong>
+    <strong>MediaPipe hand tracking</strong> â€¢ <strong>Three.js orb</strong> â€¢
+    <strong>gesture-to-text</strong> â€¢ <strong>quick phrase board</strong> â€¢
+    <strong>live caption</strong> â€¢ <strong>text-to-speech</strong> â€¢ <strong>HMAC-secured local bridge</strong>
   </p>
 </div>
 
@@ -22,14 +22,14 @@
 
 ## Tentang RYKA CORE
 
-**RYKA CORE** adalah proyek eksperimen Human–Computer Interaction yang memungkinkan pengguna membaca gestur tangan melalui kamera, menampilkan telemetri secara real-time, mengendalikan visual holografik, dan mengirim tindakan tertentu ke Windows.
+**RYKA CORE** adalah proyek eksperimen Humanâ€“Computer Interaction yang memungkinkan pengguna membaca gestur tangan melalui kamera, menampilkan telemetri secara real-time, mengendalikan visual holografik, dan mengirim tindakan tertentu ke Windows.
 
 Versi **4.4 Personal Access & Partner Communication** mempertahankan seluruh fitur penting dari **Rafi HandMotion Modified**, RYKA CORE 4.3, dan Secure Desktop Bridge. Versi ini menambahkan **RYKA Access**, yaitu modul komunikasi lokal untuk gesture-to-text, quick phrase board, text-to-speech, live caption, conversation mode, visual sound alert, dan emergency communication tanpa koneksi ke NusaMind AI.
 
 > Proyek ini dikembangkan oleh **Muhammad Rafi Priyo** sebagai proyek portofolio dan riset pribadi. Tampilan futuristiknya merupakan desain orisinal dan tidak menggunakan aset resmi Marvel, Iron Man, Jarvis, atau Ultron.
 
 
-## RYKA Access — Personal Access 4.4
+## RYKA Access â€” Personal Access 4.4
 
 RYKA Access adalah mode komunikasi mandiri yang berjalan lokal di RYKA CORE. Fitur ini ditujukan sebagai fondasi alat bantu komunikasi bagi pengguna nonverbal, pengguna dengan hambatan bicara, pengguna Tuli, dan pengguna dengan hambatan pendengaran.
 
@@ -40,7 +40,7 @@ Fitur utama:
 - **Stable Core Vocabulary:** 24 kata pada posisi tetap untuk menyusun kalimat visual.
 - **Gesture-to-Text:** gestur stabil dipetakan ke kalimat pribadi.
 - **Quick Phrase Board:** kebutuhan dasar, percakapan, perasaan, kesehatan, aktivitas, dan darurat.
-- **Partner Display:** pesan layar penuh, rotate 180°, status menunggu, dan tombol Ya/Tidak.
+- **Partner Display:** pesan layar penuh, rotate 180Â°, status menunggu, dan tombol Ya/Tidak.
 - **Communication Partner Guide:** panduan singkat berkomunikasi dengan hormat dan memberi waktu menjawab.
 - **Low-Tech Fallback:** kartu komunikasi TXT serta print/save PDF melalui browser.
 - **Text-to-Speech:** pesan dapat dibacakan menggunakan suara sistem.
@@ -63,7 +63,7 @@ Dokumentasi lengkap: [`ACCESSIBILITY.md`](ACCESSIBILITY.md).
 
 - Pelacakan tangan real-time menggunakan MediaPipe.
 - GPU delegate dengan fallback CPU.
-- Dukungan maksimum **1–4 tangan**.
+- Dukungan maksimum **1â€“4 tangan**.
 - Deteksi tangan kiri/kanan dan confidence score.
 - Toggle kamera, skeleton, landmark, dan mirror.
 - Pilihan kualitas kamera: Performance, Balanced, dan Quality.
@@ -86,7 +86,7 @@ Seluruh efek dari Rafi HandMotion Modified tetap tersedia:
 
 - **Blur Field**
 - **Mosaic Grid**
-- **Flip 180°**
+- **Flip 180Â°**
 - Mode otomatis atau manual.
 - Area satu tangan, dua tangan, atau otomatis.
 - Intensitas blur dan ukuran blok mosaic dapat diatur.
@@ -186,7 +186,7 @@ npm --version
 
 ## Cara menjalankan
 
-### Metode tercepat — RYKA Access
+### Metode tercepat â€” RYKA Access
 
 Klik dua kali:
 
@@ -202,7 +202,7 @@ http://localhost:3200/?mode=access
 
 Dari tampilan utama, tekan tombol **ACCESS** atau keyboard **A**.
 
-### Metode 1 — Desktop Mode
+### Metode 1 â€” Desktop Mode
 
 Desktop Mode mengaktifkan seluruh fitur, termasuk kontrol Windows.
 
@@ -225,7 +225,7 @@ http://localhost:3200
 
 Terminal harus tetap terbuka selama aplikasi digunakan.
 
-### Metode 2 — PowerShell
+### Metode 2 â€” PowerShell
 
 ```powershell
 git clone https://github.com/muhrafi-fsdev/RYKA-CORE.git
@@ -240,7 +240,7 @@ Kemudian buka:
 http://localhost:3200
 ```
 
-### Metode 3 — Web-only Mode
+### Metode 3 â€” Web-only Mode
 
 Mode ini menjalankan kamera, gesture, orb, skeleton, blur, mosaic, dan flip tanpa mengendalikan Windows.
 
@@ -259,8 +259,8 @@ START_WEB.bat
 
 | Input | Aksi |
 |---|---|
-| Closed Fist, tahan ±1,2 detik | Mengaktifkan gesture control |
-| Open Palm, tahan ±1,2 detik | Mengunci gesture control |
+| Closed Fist, tahan Â±1,2 detik | Mengaktifkan gesture control |
+| Open Palm, tahan Â±1,2 detik | Mengunci gesture control |
 | Pinch satu tangan + gerakkan | Memutar orb |
 | Pinch dua tangan + ubah jarak | Zoom orb |
 | Swipe | Menjalankan action sesuai profile |
@@ -270,7 +270,7 @@ START_WEB.bat
 | `Alt + S` | Membacakan pesan RYKA Access |
 | `Alt + P` | Membuka Partner Display |
 | `Space` / `Enter` | Memilih sorotan Single-switch |
-| `1`–`9` | Memilih quick phrase pada Keyboard Mode |
+| `1`â€“`9` | Memilih quick phrase pada Keyboard Mode |
 | `Escape` | Menutup Partner Display atau dialog |
 | `P` | Toggle system panel |
 | `R` | Reset orb |
@@ -317,22 +317,22 @@ Folder `logs/` tidak perlu diunggah ke repository.
 
 ```text
 RYKA-CORE/
-├─ .github/                 # Security workflow dan Dependabot
-├─ docs/                    # Aset dokumentasi
-├─ public/                  # Manifest dan aset publik
-├─ scripts/                 # Desktop Bridge, launcher, dan validator
-├─ src/
-│  ├─ components/           # UI utama dan hand tracker
-│  ├─ lib/                  # Gesture engine, filters, effects, orb
-│  ├─ routes/               # Route utama dan demo
-│  └─ styles.css            # Styling aplikasi
-├─ SECURITY.md
-├─ ACCESSIBILITY.md
-├─ THREAT_MODEL.md
-├─ START_ACCESS.bat
-├─ START_DESKTOP.bat
-├─ START_WEB.bat
-└─ package.json
+â”œâ”€ .github/                 # Security workflow dan Dependabot
+â”œâ”€ docs/                    # Aset dokumentasi
+â”œâ”€ public/                  # Manifest dan aset publik
+â”œâ”€ scripts/                 # Desktop Bridge, launcher, dan validator
+â”œâ”€ src/
+â”‚  â”œâ”€ components/           # UI utama dan hand tracker
+â”‚  â”œâ”€ lib/                  # Gesture engine, filters, effects, orb
+â”‚  â”œâ”€ routes/               # Route utama dan demo
+â”‚  â””â”€ styles.css            # Styling aplikasi
+â”œâ”€ SECURITY.md
+â”œâ”€ ACCESSIBILITY.md
+â”œâ”€ THREAT_MODEL.md
+â”œâ”€ START_ACCESS.bat
+â”œâ”€ START_DESKTOP.bat
+â”œâ”€ START_WEB.bat
+â””â”€ package.json
 ```
 
 ## Troubleshooting
@@ -401,11 +401,31 @@ npm install
 
 <div align="center">
   <strong>Muhammad Rafi Priyo</strong><br />
-  Junior Full-Stack Developer • AI & Human–Computer Interaction Enthusiast
+  Junior Full-Stack Developer â€¢ AI & Humanâ€“Computer Interaction Enthusiast
 </div>
 
 ---
 
 <div align="center">
-  <sub>RYKA CORE 4.4 — Personal Access & Partner Communication</sub>
+  <sub>RYKA CORE 4.4 â€” Personal Access & Partner Communication</sub>
 </div>
+---
+
+## RYKA Puzzle Cam
+
+RYKA CORE menyertakan modul kreatif **Puzzle Cam** pada route:
+
+```text
+http://localhost:3200/puzzle-cam
+```
+
+Fitur utamanya meliputi gesture capture, sliding puzzle, photobooth layout,
+filter visual, galeri strip, printing animation, dan scrapbook editor. Modul
+berjalan terisolasi pada `public/puzzle-cam/` agar stylesheet dan JavaScript
+asal tidak bertabrakan dengan antarmuka utama RYKA.
+
+Navbar global menyediakan akses terpisah ke **CORE**, **ACCESS**, dan
+**PUZZLE CAM**.
+
+> Source attribution: Puzzle Cam berasal dari proyek publik
+> `Shafira0605/puzzle_cam`. Lihat `public/puzzle-cam/NOTICE.md`.
