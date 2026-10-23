@@ -4,7 +4,7 @@ export type PhraseCategory = {
   id: string;
   label: string;
   icon: string;
-  phrases: string[];
+  phrases: Array<string>;
 };
 
 export type CommunicationEntry = {
@@ -23,7 +23,7 @@ export type PersonalAccessProfile = {
   completed: boolean;
   displayName: string;
   role: AccessRole;
-  needs: AccessNeed[];
+  needs: Array<AccessNeed>;
   inputMode: AccessInputMode;
   language: string;
   dominantHand: "right" | "left" | "either";
@@ -72,7 +72,7 @@ export const ACCESS_NEED_LABELS: Record<AccessNeed, string> = {
   "low-vision": "Membutuhkan teks besar / visual jelas",
 };
 
-export const ACCESS_GESTURES: GestureKey[] = [
+export const ACCESS_GESTURES: Array<GestureKey> = [
   "Closed_Fist",
   "Open_Palm",
   "Pointing_Up",
@@ -114,7 +114,7 @@ export const DEFAULT_GESTURE_PHRASES: Record<GestureKey, string> = {
   Swipe_Down: "Saya ingin berhenti.",
 };
 
-export const CORE_VOCABULARY: CoreWord[] = [
+export const CORE_VOCABULARY: Array<CoreWord> = [
   { id: "saya", label: "Saya", icon: "👤", group: "person" },
   { id: "kamu", label: "Kamu", icon: "🫵", group: "person" },
   { id: "ingin", label: "ingin", icon: "💭", group: "action" },
@@ -141,7 +141,7 @@ export const CORE_VOCABULARY: CoreWord[] = [
   { id: "mengapa", label: "mengapa?", icon: "💡", group: "question" },
 ];
 
-export const PHRASE_CATEGORIES: PhraseCategory[] = [
+export const PHRASE_CATEGORIES: Array<PhraseCategory> = [
   {
     id: "basic",
     label: "Kebutuhan dasar",

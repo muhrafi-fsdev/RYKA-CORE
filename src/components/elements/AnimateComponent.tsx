@@ -95,13 +95,13 @@ export default function AnimateComponent({
     if (onScroll) {
       const observer = new IntersectionObserver(
         (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && !hasAnimated.current) {
+          entries.forEach((observed) => {
+            if (observed.isIntersecting && !hasAnimated.current) {
               setIsInView(true)
               if (!resetOnLeave) {
                 hasAnimated.current = true
               }
-            } else if (!entry.isIntersecting && resetOnLeave) {
+            } else if (!observed.isIntersecting && resetOnLeave) {
               setIsInView(false)
               hasAnimated.current = false
             }
