@@ -40,7 +40,7 @@ Fitur utama:
 - **Stable Core Vocabulary:** 24 kata pada posisi tetap untuk menyusun kalimat visual.
 - **Gesture-to-Text:** gestur stabil dipetakan ke kalimat pribadi.
 - **Quick Phrase Board:** kebutuhan dasar, percakapan, perasaan, kesehatan, aktivitas, dan darurat.
-- **Partner Display:** pesan layar penuh, rotate 180Â°, status menunggu, dan tombol Ya/Tidak.
+- **Partner Display:** pesan layar penuh, rotate 180°, status menunggu, dan tombol Ya/Tidak.
 - **Communication Partner Guide:** panduan singkat berkomunikasi dengan hormat dan memberi waktu menjawab.
 - **Low-Tech Fallback:** kartu komunikasi TXT serta print/save PDF melalui browser.
 - **Text-to-Speech:** pesan dapat dibacakan menggunakan suara sistem.
@@ -86,7 +86,7 @@ Seluruh efek dari Rafi HandMotion Modified tetap tersedia:
 
 - **Blur Field**
 - **Mosaic Grid**
-- **Flip 180Â°**
+- **Flip 180°**
 - Mode otomatis atau manual.
 - Area satu tangan, dua tangan, atau otomatis.
 - Intensitas blur dan ukuran blok mosaic dapat diatur.
@@ -259,8 +259,8 @@ START_WEB.bat
 
 | Input | Aksi |
 |---|---|
-| Closed Fist, tahan Â±1,2 detik | Mengaktifkan gesture control |
-| Open Palm, tahan Â±1,2 detik | Mengunci gesture control |
+| Closed Fist, tahan ±1,2 detik | Mengaktifkan gesture control |
+| Open Palm, tahan ±1,2 detik | Mengunci gesture control |
 | Pinch satu tangan + gerakkan | Memutar orb |
 | Pinch dua tangan + ubah jarak | Zoom orb |
 | Swipe | Menjalankan action sesuai profile |
@@ -371,6 +371,25 @@ npm cache verify
 npm install
 ```
 
+## RYKA Puzzle Cam
+
+RYKA CORE menyertakan modul kreatif **Puzzle Cam** pada route:
+
+```text
+http://localhost:3200/puzzle-cam
+```
+
+Fitur utamanya meliputi gesture capture, sliding puzzle, photobooth layout,
+filter visual, galeri strip, printing animation, dan scrapbook editor. Modul
+berjalan terisolasi pada `public/puzzle-cam/` agar stylesheet dan JavaScript
+asal tidak bertabrakan dengan antarmuka utama RYKA.
+
+Navbar global menyediakan akses terpisah ke **CORE**, **ACCESS**, dan
+**PUZZLE CAM**.
+
+> Source attribution: Puzzle Cam berasal dari proyek publik
+> `Shafira0605/puzzle_cam`. Lihat `public/puzzle-cam/NOTICE.md`.
+
 ## Roadmap
 
 - Native desktop migration menggunakan Tauri.
@@ -385,10 +404,10 @@ npm install
 ## Dokumentasi tambahan
 
 - [`COMPATIBILITY_CHECKLIST.md`](COMPATIBILITY_CHECKLIST.md)
-- [`MODIFIKASI.md`](MODIFIKASI.md)
+- [`MODIFIKASI.md`](docs/MODIFIKASI.md)
 - [`RESOURCE_REFERENCES.md`](RESOURCE_REFERENCES.md)
 - [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
-- [`VALIDATION_REPORT.txt`](VALIDATION_REPORT.txt)
+- [`VALIDATION_REPORT.txt`](docs/VALIDATION_REPORT.txt)
 
 ## Catatan privasi
 
@@ -409,23 +428,3 @@ npm install
 <div align="center">
   <sub>RYKA CORE 4.4 â€” Personal Access & Partner Communication</sub>
 </div>
----
-
-## RYKA Puzzle Cam
-
-RYKA CORE menyertakan modul kreatif **Puzzle Cam** pada route:
-
-```text
-http://localhost:3200/puzzle-cam
-```
-
-Fitur utamanya meliputi gesture capture, sliding puzzle, photobooth layout,
-filter visual, galeri strip, printing animation, dan scrapbook editor. Modul
-berjalan terisolasi pada `public/puzzle-cam/` agar stylesheet dan JavaScript
-asal tidak bertabrakan dengan antarmuka utama RYKA.
-
-Navbar global menyediakan akses terpisah ke **CORE**, **ACCESS**, dan
-**PUZZLE CAM**.
-
-> Source attribution: Puzzle Cam berasal dari proyek publik
-> `Shafira0605/puzzle_cam`. Lihat `public/puzzle-cam/NOTICE.md`.

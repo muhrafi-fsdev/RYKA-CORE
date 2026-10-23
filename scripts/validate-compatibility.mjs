@@ -37,7 +37,7 @@ const expectText = (text, value, label) => {
   "START_SECURITY_CHECK.bat",
   "START_ACCESS.bat",
   "README.md",
-  "MODIFIKASI.md",
+  "docs/MODIFIKASI.md",
   "SECURITY.md",
   "SECURITY_HARDENING.md",
   "THREAT_MODEL.md",
