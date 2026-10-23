@@ -2,29 +2,34 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DrawingUtils,
   FilesetResolver,
-  GestureRecognizer,
-  type NormalizedLandmark,
+  GestureRecognizer
+  
 } from "@mediapipe/tasks-vision";
 import toast from "react-hot-toast";
-import { createOrbScene, type OrbSceneApi, type OrbVisualState } from "@/lib/orbScene";
+import type {NormalizedLandmark} from "@mediapipe/tasks-vision";
+import type {OrbSceneApi, OrbVisualState} from "@/lib/orbScene";
+import type {GestureKey, StaticGestureKey} from "@/lib/gestureEngine";
+import type {BridgePermissions, DesktopBridgeAction} from "@/lib/desktopBridge";
+import type {EffectHandsMode, EffectSelection, LegacyEffectMode} from "@/lib/legacyEffects";
+import {   createOrbScene } from "@/lib/orbScene";
 import { DynamicGestureDetector } from "@/lib/dynamicGesture";
-import { GestureStabilizer, type GestureKey, type StaticGestureKey } from "@/lib/gestureEngine";
+import {  GestureStabilizer  } from "@/lib/gestureEngine";
 import {
+  
+  
   armBridge,
   emergencyStopBridge,
   getBridgeSecurityState,
   sendDesktopAction,
-  updateBridgePermissions,
-  type BridgePermissions,
-  type DesktopBridgeAction,
+  updateBridgePermissions
 } from "@/lib/desktopBridge";
 import { OneEuroFilter } from "@/lib/oneEuroFilter";
 import RykaAccess from "@/components/RykaAccess";
 import {
-  drawLegacyHandEffect,
-  type EffectHandsMode,
-  type EffectSelection,
-  type LegacyEffectMode,
+  
+  
+  
+  drawLegacyHandEffect
 } from "@/lib/legacyEffects";
 
 type CameraState = "off" | "starting" | "on" | "error";
@@ -99,7 +104,7 @@ const DESKTOP_ACTIONS = new Set<ActionKey>([
   "previous-track",
 ]);
 
-const GESTURES: GestureKey[] = [
+const GESTURES: Array<GestureKey> = [
   "Closed_Fist",
   "Open_Palm",
   "Pointing_Up",
@@ -282,7 +287,7 @@ export default function HandTracker() {
   const [error, setError] = useState<string | null>(null);
   const [hands, setHands] = useState(0);
   const [mode, setMode] = useState<TrackerMode>("idle");
-  const [gestures, setGestures] = useState<HandGesture[]>([]);
+  const [gestures, setGestures] = useState<Array<HandGesture>>([]);
   const [panelOpen, setPanelOpen] = useState(false);
   const [controlActive, setControlActive] = useState(false);
   const [profile, setProfile] = useState<ProfileMode>(() =>
@@ -304,11 +309,11 @@ export default function HandTracker() {
   );
   const [candidate, setCandidate] = useState("AWAITING HAND INPUT");
   const [holdProgress, setHoldProgress] = useState(0);
-  const [logs, setLogs] = useState<ActionLog[]>([]);
+  const [logs, setLogs] = useState<Array<ActionLog>>([]);
   const [fps, setFps] = useState(0);
   const [inferenceMs, setInferenceMs] = useState(0);
   const [scanPulse, setScanPulse] = useState(false);
-  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [cameraDevices, setCameraDevices] = useState<Array<MediaDeviceInfo>>([]);
   const [selectedCameraId, setSelectedCameraId] = useState(() =>
     readCompatStorage("ryka-core-camera-id", "rafi-ultron-camera-id", ""),
   );
@@ -598,7 +603,7 @@ export default function HandTracker() {
 
   const drawOverlay = useCallback(
     (
-      landmarks: NormalizedLandmark[][],
+      landmarks: Array<Array<NormalizedLandmark>>,
       drawing: DrawingUtils,
       video: HTMLVideoElement,
     ) => {
@@ -665,8 +670,8 @@ export default function HandTracker() {
   );
 
   const processPinchControl = useCallback(
-    (landmarks: NormalizedLandmark[][], labels: string[], now: number) => {
-      const pinched: { x: number; y: number }[] = [];
+    (landmarks: Array<Array<NormalizedLandmark>>, labels: Array<string>, now: number) => {
+      const pinched: Array<{ x: number; y: number }> = [];
       const seen = new Set<string>();
 
       landmarks.forEach((lm, index) => {
@@ -1609,7 +1614,7 @@ export default function HandTracker() {
             <h2>RAFI HANDMOTION COMPATIBILITY</h2>
             <p className="ultron-safety-note">
               Legacy controls are preserved: 1â€“4 hands, skeleton, landmarks,
-              mirror, Blur, Mosaic, and Flip 180Â°. All settings persist locally.
+              mirror, Blur, Mosaic, and Flip 180°. All settings persist locally.
             </p>
             <div className="ultron-camera-config">
               <label>
@@ -1681,7 +1686,7 @@ export default function HandTracker() {
                   <option value="auto">AUTO // THUMB DIRECTION</option>
                   <option value="blur">BLUR</option>
                   <option value="mosaic">MOSAIC</option>
-                  <option value="flip">FLIP 180Â°</option>
+                  <option value="flip">FLIP 180°</option>
                 </select>
               </label>
               <label>
@@ -1802,7 +1807,7 @@ export default function HandTracker() {
           <section className="ultron-panel-section">
             <h2>INTERFACE VIEW</h2>
             <div className="ultron-profile-grid">
-              {(["command", "minimal", "debug"] as ViewMode[]).map((item) => (
+              {(["command", "minimal", "debug"] as Array<ViewMode>).map((item) => (
                 <button
                   key={item}
                   type="button"
@@ -1818,7 +1823,7 @@ export default function HandTracker() {
           <section className="ultron-panel-section">
             <h2>PROFILE</h2>
             <div className="ultron-profile-grid">
-              {(["presentation", "media", "custom"] as ProfileMode[]).map((item) => (
+              {(["presentation", "media", "custom"] as Array<ProfileMode>).map((item) => (
                 <button
                   key={item}
                   type="button"

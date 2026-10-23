@@ -1,28 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import type { GestureKey } from "@/lib/gestureEngine";
+import type {AccessInputMode, AccessNeed, AccessRole, CommunicationEntry, PersonalAccessProfile} from "@/lib/accessibility";
 import {
-  ACCESS_GESTURE_LABELS,
   ACCESS_GESTURES,
-  DEFAULT_GESTURE_PHRASES,
+  ACCESS_GESTURE_LABELS,
   ACCESS_INPUT_LABELS,
   ACCESS_NEED_LABELS,
   ACCESS_ROLE_LABELS,
+  
+  
+  
   BODY_REGIONS,
   CORE_VOCABULARY,
+  
+  DEFAULT_GESTURE_PHRASES,
   DEFAULT_PERSONAL_PROFILE,
   PARTNER_GUIDE,
   PHRASE_CATEGORIES,
+  
   appendPhrase,
   buildPainPhrase,
   formatAccessTime,
   normalizePhrase,
-  removeLastWord,
-  type AccessInputMode,
-  type AccessNeed,
-  type AccessRole,
-  type CommunicationEntry,
-  type PersonalAccessProfile,
+  removeLastWord
 } from "@/lib/accessibility";
 
 type AccessTab = "communicate" | "caption" | "personal" | "partner" | "gestures" | "settings";
@@ -165,10 +166,10 @@ export default function RykaAccess({
   const [tab, setTab] = useState<AccessTab>("communicate");
   const [composer, setComposer] = useState("");
   const [category, setCategory] = useState(PHRASE_CATEGORIES[0].id);
-  const [history, setHistory] = useState<CommunicationEntry[]>(() =>
+  const [history, setHistory] = useState<Array<CommunicationEntry>>(() =>
     readLocal("ryka-access-history", []),
   );
-  const [favorites, setFavorites] = useState<string[]>(() =>
+  const [favorites, setFavorites] = useState<Array<string>>(() =>
     readLocal("ryka-access-favorites", [
       "Saya ingin minum.",
       "Tolong bantu saya.",
@@ -188,11 +189,11 @@ export default function RykaAccess({
     score: number;
   } | null>(null);
   const [emergencyOpen, setEmergencyOpen] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voices, setVoices] = useState<Array<SpeechSynthesisVoice>>([]);
   const [captionSupported, setCaptionSupported] = useState(false);
   const [captionActive, setCaptionActive] = useState(false);
   const [captionInterim, setCaptionInterim] = useState("");
-  const [captions, setCaptions] = useState<CaptionLine[]>([]);
+  const [captions, setCaptions] = useState<Array<CaptionLine>>([]);
   const [soundMonitorActive, setSoundMonitorActive] = useState(false);
   const [soundLevel, setSoundLevel] = useState(0);
   const [visualAlert, setVisualAlert] = useState<string | null>(null);
@@ -624,7 +625,7 @@ export default function RykaAccess({
 
       if (parsed.settings && typeof parsed.settings === "object") {
         const source = parsed.settings as Record<string, unknown>;
-        const allowedInputModes: AccessInputMode[] = ["touch", "keyboard", "switch", "dwell", "gesture"];
+        const allowedInputModes: Array<AccessInputMode> = ["touch", "keyboard", "switch", "dwell", "gesture"];
         setSettings((current) => ({
           ...current,
           autoSpeak: typeof source.autoSpeak === "boolean" ? source.autoSpeak : current.autoSpeak,
@@ -659,12 +660,12 @@ export default function RykaAccess({
 
       if (parsed.personalProfile && typeof parsed.personalProfile === "object") {
         const source = parsed.personalProfile as Record<string, unknown>;
-        const allowedRoles: AccessRole[] = ["user", "caregiver", "professional"];
-        const allowedNeeds: AccessNeed[] = ["speech", "hearing", "motor", "emergency", "low-vision"];
-        const allowedInputs: AccessInputMode[] = ["touch", "keyboard", "switch", "dwell", "gesture"];
-        const allowedHands: PersonalAccessProfile["dominantHand"][] = ["right", "left", "either"];
-        const allowedEnvironments: PersonalAccessProfile["environment"][] = ["home", "school", "work", "healthcare", "mixed"];
-        const allowedReading: PersonalAccessProfile["readingSupport"][] = ["text", "text-symbol", "symbol"];
+        const allowedRoles: Array<AccessRole> = ["user", "caregiver", "professional"];
+        const allowedNeeds: Array<AccessNeed> = ["speech", "hearing", "motor", "emergency", "low-vision"];
+        const allowedInputs: Array<AccessInputMode> = ["touch", "keyboard", "switch", "dwell", "gesture"];
+        const allowedHands: Array<PersonalAccessProfile["dominantHand"]> = ["right", "left", "either"];
+        const allowedEnvironments: Array<PersonalAccessProfile["environment"]> = ["home", "school", "work", "healthcare", "mixed"];
+        const allowedReading: Array<PersonalAccessProfile["readingSupport"]> = ["text", "text-symbol", "symbol"];
         const needs = Array.isArray(source.needs)
           ? source.needs.filter((item): item is AccessNeed => typeof item === "string" && allowedNeeds.includes(item as AccessNeed)).slice(0, allowedNeeds.length)
           : [];
@@ -870,7 +871,7 @@ export default function RykaAccess({
               <div className="ryka-access-setup-section">
                 <strong>KEBUTUHAN UTAMA</strong>
                 <div className="ryka-access-choice-grid">
-                  {(Object.entries(ACCESS_NEED_LABELS) as [AccessNeed, string][]).map(([need, label]) => {
+                  {(Object.entries(ACCESS_NEED_LABELS) as Array<[AccessNeed, string]>).map(([need, label]) => {
                     const active = personalProfile.needs.includes(need);
                     return (
                       <button
@@ -895,7 +896,7 @@ export default function RykaAccess({
               <div className="ryka-access-setup-section">
                 <strong>METODE INPUT UTAMA</strong>
                 <div className="ryka-access-choice-grid">
-                  {(Object.entries(ACCESS_INPUT_LABELS) as [AccessInputMode, string][]).map(([mode, label]) => (
+                  {(Object.entries(ACCESS_INPUT_LABELS) as Array<[AccessInputMode, string]>).map(([mode, label]) => (
                     <button
                       key={mode}
                       type="button"
@@ -917,7 +918,7 @@ export default function RykaAccess({
                   value={personalProfile.role}
                   onChange={(event) => setPersonalProfile((current) => ({ ...current, role: event.target.value as AccessRole }))}
                 >
-                  {(Object.entries(ACCESS_ROLE_LABELS) as [AccessRole, string][]).map(([role, label]) => (
+                  {(Object.entries(ACCESS_ROLE_LABELS) as Array<[AccessRole, string]>).map(([role, label]) => (
                     <option key={role} value={role}>{label}</option>
                   ))}
                 </select>
@@ -1333,7 +1334,7 @@ export default function RykaAccess({
               <h2>METODE AKSES ALTERNATIF</h2>
               <p>Pilih cara yang paling nyaman. Touch dan mouse tetap selalu tersedia.</p>
               <div className="ryka-access-choice-grid ryka-access-choice-grid-vertical">
-                {(Object.entries(ACCESS_INPUT_LABELS) as [AccessInputMode, string][]).map(([mode, label]) => (
+                {(Object.entries(ACCESS_INPUT_LABELS) as Array<[AccessInputMode, string]>).map(([mode, label]) => (
                   <button
                     key={mode}
                     type="button"
@@ -1360,7 +1361,7 @@ export default function RykaAccess({
               <h2>ROLE MODE</h2>
               <p>Mode tidak mengambil hak pengguna. Caregiver dan Professional hanya menampilkan alat konfigurasi tambahan.</p>
               <div className="ryka-access-choice-grid ryka-access-choice-grid-vertical">
-                {(Object.entries(ACCESS_ROLE_LABELS) as [AccessRole, string][]).map(([role, label]) => (
+                {(Object.entries(ACCESS_ROLE_LABELS) as Array<[AccessRole, string]>).map(([role, label]) => (
                   <button
                     key={role}
                     type="button"
@@ -1558,7 +1559,7 @@ export default function RykaAccess({
                     setPersonalProfile((current) => ({ ...current, inputMode }));
                   }}
                 >
-                  {(Object.entries(ACCESS_INPUT_LABELS) as [AccessInputMode, string][]).map(([mode, label]) => (
+                  {(Object.entries(ACCESS_INPUT_LABELS) as Array<[AccessInputMode, string]>).map(([mode, label]) => (
                     <option key={mode} value={mode}>{label}</option>
                   ))}
                 </select>

@@ -9,16 +9,16 @@ export type OrbVisualState = "idle" | "locked" | "tracking" | "holding" | "trigg
 
 export interface OrbSceneApi {
   /** Rotate the camera around the orb by the given angles (radians). */
-  rotateBy(deltaTheta: number, deltaPhi: number): void;
+  rotateBy: (deltaTheta: number, deltaPhi: number) => void;
   /** Multiply the camera distance by `factor` (<1 zooms in, >1 zooms out). */
-  zoomBy(factor: number): void;
-  zoomIn(): void;
-  zoomOut(): void;
-  resetView(): void;
-  setState(state: OrbVisualState): void;
-  setEnergy(value: number): void;
-  pulse(): void;
-  dispose(): void;
+  zoomBy: (factor: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
+  setState: (state: OrbVisualState) => void;
+  setEnergy: (value: number) => void;
+  pulse: () => void;
+  dispose: () => void;
 }
 
 const HOME_POSITION = new THREE.Vector3(0, 0.5, 5.5);
@@ -154,7 +154,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
   function latRing(radius: number, lat: number, segs = 120) {
     const r = radius * Math.cos(lat);
     const y = radius * Math.sin(lat);
-    const pts: THREE.Vector3[] = [];
+    const pts: Array<THREE.Vector3> = [];
     for (let i = 0; i <= segs; i++) {
       const a = (i / segs) * Math.PI * 2;
       pts.push(new THREE.Vector3(r * Math.cos(a), y, r * Math.sin(a)));
@@ -164,7 +164,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
 
   // ——— UTILITY: Create meridian ———
   function meridian(radius: number, lon: number, segs = 120) {
-    const pts: THREE.Vector3[] = [];
+    const pts: Array<THREE.Vector3> = [];
     for (let i = 0; i <= segs; i++) {
       const lat = (i / segs) * Math.PI - Math.PI / 2;
       pts.push(
@@ -256,7 +256,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     // horizontal lines
     for (let i = 0; i <= divisions; i++) {
       const lat = latCenter - latSpan / 2 + (i / divisions) * latSpan;
-      const pts: THREE.Vector3[] = [];
+      const pts: Array<THREE.Vector3> = [];
       for (let j = 0; j <= divisions * 4; j++) {
         const lon = lonCenter - lonSpan / 2 + (j / (divisions * 4)) * lonSpan;
         pts.push(
@@ -273,7 +273,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     // vertical lines
     for (let j = 0; j <= divisions; j++) {
       const lon = lonCenter - lonSpan / 2 + (j / divisions) * lonSpan;
-      const pts: THREE.Vector3[] = [];
+      const pts: Array<THREE.Vector3> = [];
       for (let i = 0; i <= divisions * 4; i++) {
         const lat = latCenter - latSpan / 2 + (i / (divisions * 4)) * latSpan;
         pts.push(
@@ -318,7 +318,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     const lat = (Math.random() - 0.5) * Math.PI * 0.85;
     const startLon = Math.random() * Math.PI * 2;
     const arcLen = 0.3 + Math.random() * 1.2;
-    const pts: THREE.Vector3[] = [];
+    const pts: Array<THREE.Vector3> = [];
     const segs = 60;
     const r = R2 * Math.cos(lat);
     const y = R2 * Math.sin(lat);
@@ -339,7 +339,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     const lon = Math.random() * Math.PI * 2;
     const startLat = (Math.random() - 0.5) * Math.PI * 0.8;
     const arcLen = 0.3 + Math.random() * 0.8;
-    const pts: THREE.Vector3[] = [];
+    const pts: Array<THREE.Vector3> = [];
     const segs = 40;
     for (let j = 0; j <= segs; j++) {
       const lat = startLat + (j / segs) * arcLen;
@@ -368,7 +368,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
 
   // Dense spirals
   for (let s = 0; s < 8; s++) {
-    const pts: THREE.Vector3[] = [];
+    const pts: Array<THREE.Vector3> = [];
     const turns = 3 + Math.random() * 2;
     const segs = 300;
     const phase = (s / 8) * Math.PI * 2;
@@ -558,7 +558,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     tiltZ: number;
     phase: number;
   }
-  const debris: THREE.Mesh[] = [];
+  const debris: Array<THREE.Mesh> = [];
   for (let i = 0; i < 250; i++) {
     const geo = debrisGeos[Math.floor(Math.random() * debrisGeos.length)];
     const mat = new THREE.MeshBasicMaterial({
@@ -579,7 +579,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
 
     // ~15% get a faint trailing line
     if (Math.random() > 0.85) {
-      const trailPts: THREE.Vector3[] = [];
+      const trailPts: Array<THREE.Vector3> = [];
       for (let j = 0; j <= 15; j++) {
         const a = -(j / 15) * 0.3;
         trailPts.push(
@@ -829,7 +829,7 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     });
 
     // Text drift
-    const driftGroups: [THREE.Group, number][] = [
+    const driftGroups: Array<[THREE.Group, number]> = [
       [textOuter, 1],
       [textInner, 2],
       [textAmbient, 1.2],
@@ -851,13 +851,13 @@ export function createOrbScene(container: HTMLElement): OrbSceneApi {
     scanRing1.position.y = scanY1;
     const scanS1 = Math.sqrt(Math.max(0, R1 * R1 - scanY1 * scanY1)) / R1;
     scanRing1.scale.set(scanS1, scanS1, 1);
-    (scanRing1.material as THREE.MeshBasicMaterial).opacity = 0.2 * scanS1;
+    (scanRing1.material).opacity = 0.2 * scanS1;
 
     const scanY2 = Math.sin(t * 0.6 + 2) * R3;
     scanRing2.position.y = scanY2;
     const scanS2 = Math.sqrt(Math.max(0, R3 * R3 - scanY2 * scanY2)) / R3;
     scanRing2.scale.set(scanS2, scanS2, 1);
-    (scanRing2.material as THREE.MeshBasicMaterial).opacity = 0.15 * scanS2;
+    (scanRing2.material).opacity = 0.15 * scanS2;
 
     // Dust rotation
     dustPoints.rotation.y += 0.0002;

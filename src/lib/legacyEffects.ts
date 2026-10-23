@@ -23,16 +23,16 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function chooseHands(
-  landmarks: NormalizedLandmark[][],
+  landmarks: Array<Array<NormalizedLandmark>>,
   handsMode: EffectHandsMode,
-): NormalizedLandmark[][] {
+): Array<Array<NormalizedLandmark>> {
   if (handsMode === "single") return landmarks.slice(0, 1);
   if (handsMode === "dual") return landmarks.length >= 2 ? landmarks.slice(0, 2) : [];
   return landmarks.slice(0, 2);
 }
 
 export function resolveLegacyEffectMode(
-  thumbDirections: boolean[],
+  thumbDirections: Array<boolean>,
   selection: EffectSelection,
 ): Exclude<LegacyEffectMode, null> {
   if (selection !== "auto") return selection;
@@ -44,9 +44,9 @@ export function resolveLegacyEffectMode(
 }
 
 function polygonForHands(
-  hands: HandControlPoints[],
+  hands: Array<HandControlPoints>,
   mode: Exclude<LegacyEffectMode, null>,
-): Point[] {
+): Array<Point> {
   const [first, second] = hands;
   if (second) {
     if (mode === "mosaic") {
@@ -66,7 +66,7 @@ function polygonForHands(
 export function drawLegacyHandEffect(
   context: CanvasRenderingContext2D,
   video: HTMLVideoElement,
-  landmarks: NormalizedLandmark[][],
+  landmarks: Array<Array<NormalizedLandmark>>,
   canvasWidth: number,
   canvasHeight: number,
   temporaryCanvas: HTMLCanvasElement,
@@ -77,7 +77,7 @@ export function drawLegacyHandEffect(
     return null;
   }
 
-  const hands: HandControlPoints[] = selectedHands.map((hand) => ({
+  const hands: Array<HandControlPoints> = selectedHands.map((hand) => ({
     thumb: { x: hand[4].x * canvasWidth, y: hand[4].y * canvasHeight },
     index: { x: hand[8].x * canvasWidth, y: hand[8].y * canvasHeight },
     thumbAbove: hand[4].y < hand[8].y,

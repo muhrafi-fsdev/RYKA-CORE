@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
+    DrawingUtils,
     FilesetResolver,
     GestureRecognizer as GestureRecognizerTask,
-    DrawingUtils,
 } from "@mediapipe/tasks-vision";
 
 type Hand = { label: string; gesture: string };
@@ -14,7 +14,7 @@ export default function GestureRecognizer() {
     const streamRef = useRef<MediaStream | null>(null);
     const rafRef = useRef(0);
 
-    const [hands, setHands] = useState<Hand[]>([]);
+    const [hands, setHands] = useState<Array<Hand>>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -75,7 +75,7 @@ export default function GestureRecognizer() {
                 const result = recognizer.recognizeForVideo(video, performance.now());
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                const detected: Hand[] = result.landmarks.map((landmarks, i) => {
+                const detected: Array<Hand> = result.landmarks.map((landmarks, i) => {
                     // uncomment to see the landmarks (points) detected by the model
                     // console.log("landmarks:", landmarks);
                     draw!.drawConnectors(landmarks, GestureRecognizerTask.HAND_CONNECTIONS, {

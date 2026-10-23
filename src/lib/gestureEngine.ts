@@ -28,7 +28,7 @@ export type StableGesture = GestureCandidate & {
 type HistoryEntry = GestureCandidate & { at: number };
 
 export class GestureStabilizer {
-  private history: HistoryEntry[] = [];
+  private history: Array<HistoryEntry> = [];
   private releaseGesture: StaticGestureKey | null = null;
   private releaseStartedAt = 0;
 

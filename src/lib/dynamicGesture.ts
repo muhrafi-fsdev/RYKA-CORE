@@ -2,7 +2,7 @@ import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import type { DynamicGestureKey } from "@/lib/gestureEngine";
 
 type Point = { x: number; y: number; at: number };
-type Track = { points: Point[]; cooldownUntil: number };
+type Track = { points: Array<Point>; cooldownUntil: number };
 
 export type DynamicGestureEvent = {
   gesture: DynamicGestureKey;
@@ -15,11 +15,11 @@ export class DynamicGestureDetector {
   private tracks = new Map<string, Track>();
 
   update(
-    landmarks: NormalizedLandmark[][],
-    labels: string[],
+    landmarks: Array<Array<NormalizedLandmark>>,
+    labels: Array<string>,
     now: number,
-  ): DynamicGestureEvent[] {
-    const results: DynamicGestureEvent[] = [];
+  ): Array<DynamicGestureEvent> {
+    const results: Array<DynamicGestureEvent> = [];
     const seen = new Set<string>();
 
     landmarks.forEach((hand, index) => {
