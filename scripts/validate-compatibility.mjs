@@ -48,7 +48,7 @@ const expectText = (text, value, label) => {
 const handTracker = readSources(handTrackerPath, resolve(root, "src/components/hand-tracker"));
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const bridge = readFileSync(bridgePath, "utf8");
-const access = readFileSync(accessPath, "utf8");
+const access = readSources(accessPath, resolve(root, "src/components/ryka-access"));
 
 if (packageJson.name !== "ryka-core") failures.push("Package name must remain ryka-core");
 if (packageJson.version !== "4.4.0") failures.push("Package version must be 4.4.0");
