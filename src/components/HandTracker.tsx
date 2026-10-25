@@ -6,6 +6,8 @@ import {
 } from "@mediapipe/tasks-vision";
 import toast from "react-hot-toast";
 import { ControlDock } from "./hand-tracker/ControlDock";
+import { useCalibration } from "./hand-tracker/useCalibration";
+import { CalibrationPanel } from "./hand-tracker/panels/CalibrationPanel";
 import { TopHud } from "./hand-tracker/TopHud";
 import { usePersistedSetting } from "./hand-tracker/usePersistedSetting";
 import { readCompatStorage, readStorage } from "./hand-tracker/storage";
@@ -107,6 +109,12 @@ export default function HandTracker() {
   const dynamicCooldownUntilRef = useRef(0);
   const stabilizerRef = useRef(new GestureStabilizer());
   const dynamicDetectorRef = useRef(new DynamicGestureDetector());
+  const calibration = useCalibration(dynamicDetectorRef);
+  const {
+    processFrame: processCalibrationFrame,
+    isCalibratingRef,
+    cancel: cancelCalibration,
+  } = calibration;
   const lastInferenceRunRef = useRef(0);
   const adaptiveDelayRef = useRef(0);
   const lowFpsTicksRef = useRef(0);
@@ -814,6 +822,7 @@ export default function HandTracker() {
     activeEffectModeRef.current = null;
     stabilizerRef.current.reset();
     dynamicDetectorRef.current.reset();
+    cancelCalibration();
     holdRef.current = { gesture: "", hand: "", startedAt: 0 };
     previousModeRef.current = "idle";
     previousSpinGrabRef.current = null;
@@ -833,7 +842,7 @@ export default function HandTracker() {
     if (ctx && overlayRef.current) {
       ctx.clearRect(0, 0, overlayRef.current.width, overlayRef.current.height);
     }
-  }, []);
+  }, [cancelCalibration]);
 
   const startGestures = useCallback(async () => {
     const video = videoRef.current;
@@ -920,8 +929,12 @@ export default function HandTracker() {
           result.handedness.map((entry) => entry[0]?.categoryName ?? "UNKNOWN"),
           finished,
         );
-        processGestureActions(result, finished);
-        processDynamicGestures(result, finished);
+        if (isCalibratingRef.current) {
+          processCalibrationFrame(result.landmarks, finished);
+        } else {
+          processGestureActions(result, finished);
+          processDynamicGestures(result, finished);
+        }
         if (drawing) drawOverlay(result.landmarks, drawing, video);
 
         perfRef.current.frames += 1;
@@ -973,6 +986,8 @@ export default function HandTracker() {
     }
   }, [
     drawOverlay,
+    isCalibratingRef,
+    processCalibrationFrame,
     processDynamicGestures,
     processGestureActions,
     processPinchControl,
@@ -1256,6 +1271,14 @@ export default function HandTracker() {
           onThresholdChange={setThreshold}
           onHoldMsChange={setHoldMs}
           onCooldownMsChange={setCooldownMs}
+        />
+        <CalibrationPanel
+          profile={calibration.profile}
+          session={calibration.session}
+          cameraOn={camera === "on"}
+          onStart={calibration.start}
+          onCancel={calibration.cancel}
+          onReset={calibration.reset}
         />
         <ActionMapperPanel actionMap={actionMap} onActionChange={handleActionChange} />
         <LiveGesturesPanel gestures={gestures} />
