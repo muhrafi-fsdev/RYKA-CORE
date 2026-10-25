@@ -75,6 +75,7 @@ describe("HandTracker shell", () => {
       "CAMERA MANAGER",
       "TRIGGER SAFETY",
       "SWIPE CALIBRATION",
+      "POINTER MODE",
       "ACTION MAPPER",
       "LIVE GESTURES",
       "ACTION LOG",
@@ -101,6 +102,20 @@ describe("HandTracker shell", () => {
     expect(panel().classList.contains("open")).toBe(false);
   });
 
+  it("keeps the pointer permission off and locked while the bridge is offline", async () => {
+    render(<HandTracker />);
+    await settle();
+    const box = screen.getByText("POINTER (MOUSE) CONTROL").closest("label")!.querySelector("input")!;
+    expect(box.checked).toBe(false);
+    expect(box.disabled).toBe(true);
+  });
+
+  it("will not start pointer mode without the camera, and says why", async () => {
+    render(<HandTracker />);
+    await settle();
+    expect(screen.getByText("START POINTER MODE")).toHaveProperty("disabled", true);
+    expect(screen.getByText("TURN GESTURES ON FIRST.")).toBeTruthy();
+  });
   it("switches interface view and remembers it", () => {
     const { container } = render(<HandTracker />);
     fireEvent.click(screen.getByText("DEBUG"));

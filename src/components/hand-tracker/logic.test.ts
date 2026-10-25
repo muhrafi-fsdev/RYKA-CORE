@@ -72,6 +72,7 @@ describe("deriveStatusText", () => {
     [{ camera: "error" }, "SYSTEM ERROR"],
     [{ camera: "off" }, "GESTURES OFF"],
     [{ emergencyLocked: true }, "SECURITY LOCK"],
+    [{ pointerActive: true }, "POINTER ACTIVE"],
     [{ controlActive: false }, "CONTROL LOCKED"],
     [{ releaseRequired: true }, "RELEASE REQUIRED"],
     [{ mode: "spin" }, "ORB SPIN"],

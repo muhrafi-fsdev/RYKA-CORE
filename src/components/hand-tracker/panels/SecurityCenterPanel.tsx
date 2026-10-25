@@ -58,6 +58,15 @@ export function SecurityCenterPanel({
             onChange={(event) => void onPermissionChange("media", event.target.checked)}
           />
         </label>
+        <label className="ultron-check-row">
+          <span>POINTER (MOUSE) CONTROL</span>
+          <input
+            type="checkbox"
+            checked={bridgePermissions.pointer}
+            disabled={securityBusy || bridgeState !== "online" || emergencyLocked}
+            onChange={(event) => void onPermissionChange("pointer", event.target.checked)}
+          />
+        </label>
         <div className="ultron-row">
           <button
             type="button"

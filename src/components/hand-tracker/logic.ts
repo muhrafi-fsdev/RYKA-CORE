@@ -51,6 +51,7 @@ export function deriveStatusText(input: {
   releaseRequired: boolean;
   mode: TrackerMode;
   hands: number;
+  pointerActive?: boolean;
 }) {
   const { accessOpen, camera, emergencyLocked, controlActive, releaseRequired, mode, hands } =
     input;
@@ -59,6 +60,7 @@ export function deriveStatusText(input: {
   if (camera === "error") return "SYSTEM ERROR";
   if (camera === "off") return "GESTURES OFF";
   if (emergencyLocked) return "SECURITY LOCK";
+  if (input.pointerActive) return "POINTER ACTIVE";
   if (!controlActive) return "CONTROL LOCKED";
   if (releaseRequired) return "RELEASE REQUIRED";
   if (mode === "spin") return "ORB SPIN";
