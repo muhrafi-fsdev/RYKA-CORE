@@ -11,7 +11,15 @@ export type DesktopBridgeAction =
 export type BridgePermissions = {
   presentation: boolean;
   media: boolean;
+  /** Mouse control; off by default on the bridge and revoked by emergency stop. */
+  pointer: boolean;
 };
+
+/** One mouse update. Positions are fractions (0..1) of the primary screen. */
+export type PointerOperation =
+  | { op: "move"; x: number; y: number }
+  | { op: "down" }
+  | { op: "up" };
 
 export type BridgeSecurityState = {
   online: boolean;
@@ -207,7 +215,8 @@ export async function getBridgeSecurityState(
     security: data.security,
     sessionExpiresAt: data.sessionExpiresAt,
     emergencyLocked: data.emergencyLocked,
-    permissions: data.permissions,
+    // An older bridge does not know the pointer permission: treat it as off.
+    permissions: { ...data.permissions, pointer: data.permissions.pointer === true },
   };
 }
 
@@ -248,6 +257,20 @@ export async function emergencyStopBridge() {
   });
   await readBridgeResponse<{ ok: boolean; emergencyLocked: boolean }>(response);
   clearSession();
+}
+
+/**
+ * Never retried: a 403 here means the permission is off, and replaying every
+ * mouse move after renewing the session would only multiply the traffic.
+ */
+export async function sendPointer(operation: PointerOperation, signal?: AbortSignal) {
+  const response = await signedFetch("/pointer", {
+    method: "POST",
+    body: operation,
+    retry: false,
+    signal,
+  });
+  await readBridgeResponse<{ ok: boolean }>(response);
 }
 
 export async function armBridge() {

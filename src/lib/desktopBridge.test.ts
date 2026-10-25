@@ -301,8 +301,50 @@ describe("desktopBridge operations", () => {
       security: "HMAC-SHA256",
       sessionExpiresAt: 1234,
       emergencyLocked: true,
-      permissions: { presentation: false, media: true },
+      // This bridge predates the pointer permission, so it reads as off.
+      permissions: { presentation: false, media: true, pointer: false },
     });
+  });
+
+  it("reads the pointer permission when the bridge reports it", async () => {
+    installFetch((call) =>
+      call.path === "/session"
+        ? sessionReply()
+        : {
+            json: {
+              ok: true,
+              version: "4.5.0",
+              security: "HMAC-SHA256",
+              sessionExpiresAt: 1,
+              emergencyLocked: false,
+              permissions: { presentation: true, media: true, pointer: true },
+            },
+          },
+    );
+    const bridge = await loadBridge();
+
+    const state = await bridge.getBridgeSecurityState();
+    expect(state.permissions.pointer).toBe(true);
+  });
+
+  it("only treats a literal true as the pointer permission being on", async () => {
+    installFetch((call) =>
+      call.path === "/session"
+        ? sessionReply()
+        : {
+            json: {
+              ok: true,
+              version: "4.5.0",
+              security: "HMAC-SHA256",
+              sessionExpiresAt: 1,
+              emergencyLocked: false,
+              permissions: { presentation: true, media: true, pointer: "yes" },
+            },
+          },
+    );
+    const bridge = await loadBridge();
+
+    expect((await bridge.getBridgeSecurityState()).permissions.pointer).toBe(false);
   });
 
   it("reports availability through checkDesktopBridge", async () => {
@@ -326,16 +368,69 @@ describe("desktopBridge operations", () => {
     const server = installFetch((call) =>
       call.path === "/session"
         ? sessionReply()
-        : { json: { ok: true, permissions: { presentation: true, media: false } } },
+        : { json: { ok: true, permissions: { presentation: true, media: false, pointer: true } } },
     );
     const bridge = await loadBridge();
 
-    const saved = await bridge.updateBridgePermissions({ presentation: true, media: false });
+    const saved = await bridge.updateBridgePermissions({
+      presentation: true,
+      media: false,
+      pointer: true,
+    });
 
-    expect(saved).toEqual({ presentation: true, media: false });
+    expect(saved).toEqual({ presentation: true, media: false, pointer: true });
     expect(server.of("/permissions")[0].body).toBe(
-      JSON.stringify({ presentation: true, media: false }),
+      JSON.stringify({ presentation: true, media: false, pointer: true }),
     );
+  });
+
+  it("signs pointer operations and posts them to /pointer", async () => {
+    const server = installFetch((call) =>
+      call.path === "/session" ? sessionReply() : { json: { ok: true } },
+    );
+    const bridge = await loadBridge();
+
+    await bridge.sendPointer({ op: "move", x: 0.25, y: 0.75 });
+    await bridge.sendPointer({ op: "down" });
+    await bridge.sendPointer({ op: "up" });
+
+    const calls = server.of("/pointer");
+    expect(calls.map((call) => call.body)).toEqual([
+      JSON.stringify({ op: "move", x: 0.25, y: 0.75 }),
+      JSON.stringify({ op: "down" }),
+      JSON.stringify({ op: "up" }),
+    ]);
+    for (const call of calls) {
+      expect(call.method).toBe("POST");
+      expect(call.headers["X-RYKA-SIGNATURE"]).toBe(expectedSignature(call));
+    }
+    expect(server.of("/session")).toHaveLength(1);
+  });
+
+  it("does not retry a refused pointer request or renew the session for it", async () => {
+    const server = installFetch((call) =>
+      call.path === "/session"
+        ? sessionReply()
+        : { status: 403, json: { ok: false, error: "pointer permission is disabled." } },
+    );
+    const bridge = await loadBridge();
+
+    await expect(bridge.sendPointer({ op: "move", x: 0.5, y: 0.5 })).rejects.toThrow(
+      "pointer permission is disabled.",
+    );
+    expect(server.of("/pointer")).toHaveLength(1);
+    expect(server.of("/session")).toHaveLength(1);
+  });
+
+  it("surfaces the emergency lock for pointer requests", async () => {
+    installFetch((call) =>
+      call.path === "/session"
+        ? sessionReply()
+        : { status: 423, json: { ok: false, error: "RYKA desktop control is emergency locked." } },
+    );
+    const bridge = await loadBridge();
+
+    await expect(bridge.sendPointer({ op: "down" })).rejects.toThrow(/emergency locked/);
   });
 
   it("requires the explicit confirmation phrase to re-arm", async () => {

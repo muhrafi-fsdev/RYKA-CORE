@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { ControlDock } from "./hand-tracker/ControlDock";
 import { useCalibration } from "./hand-tracker/useCalibration";
 import { CalibrationPanel } from "./hand-tracker/panels/CalibrationPanel";
+import { usePointerMode } from "./hand-tracker/usePointerMode";
+import { PointerModePanel } from "./hand-tracker/panels/PointerModePanel";
 import { TopHud } from "./hand-tracker/TopHud";
 import { usePersistedSetting } from "./hand-tracker/usePersistedSetting";
 import { readCompatStorage, readStorage } from "./hand-tracker/storage";
@@ -189,6 +191,7 @@ export default function HandTracker() {
   const [bridgePermissions, setBridgePermissions] = useState<BridgePermissions>({
     presentation: true,
     media: true,
+    pointer: false,
   });
   const [bridgeSecurity, setBridgeSecurity] = useState("HMAC-SHA256");
   const [bridgeVersion, setBridgeVersion] = useState("-");
@@ -248,6 +251,18 @@ export default function HandTracker() {
     gesture: GestureKey;
     score: number;
   } | null>(null);
+
+  const pointerMode = usePointerMode({
+    cameraOn: camera === "on",
+    bridgeOnline: bridgeState === "online",
+    permitted: bridgePermissions.pointer,
+    locked: emergencyLocked,
+  });
+  const {
+    processFrame: processPointerFrame,
+    activeRef: pointerActiveRef,
+    toggle: togglePointer,
+  } = pointerMode;
 
   useEffect(() => {
     const container = sceneContainerRef.current;
@@ -587,6 +602,7 @@ export default function HandTracker() {
 
       if (action === "screenshot") captureScreenshot();
       if (action === "reset-orb") sceneRef.current?.resetView();
+      if (action === "pointer-mode") togglePointer();
       if (action === "scan-pulse") {
         setScanPulse(true);
         window.setTimeout(() => setScanPulse(false), 900);
@@ -637,7 +653,7 @@ export default function HandTracker() {
         });
       }
     },
-    [captureScreenshot, emergencyLocked],
+    [captureScreenshot, emergencyLocked, togglePointer],
   );
 
   const emitAccessGesture = useCallback((gesture: GestureKey, score: number) => {
@@ -924,16 +940,23 @@ export default function HandTracker() {
         const finished = performance.now();
         const elapsed = finished - started;
 
-        processPinchControl(
-          result.landmarks,
-          result.handedness.map((entry) => entry[0]?.categoryName ?? "UNKNOWN"),
-          finished,
-        );
+        // While the pointer is in use a pinch is a click, not an orb rotation.
+        if (!pointerActiveRef.current) {
+          processPinchControl(
+            result.landmarks,
+            result.handedness.map((entry) => entry[0]?.categoryName ?? "UNKNOWN"),
+            finished,
+          );
+        }
         if (isCalibratingRef.current) {
           processCalibrationFrame(result.landmarks, finished);
         } else {
           processGestureActions(result, finished);
-          processDynamicGestures(result, finished);
+          if (pointerActiveRef.current) {
+            processPointerFrame(result.landmarks, finished);
+          } else {
+            processDynamicGestures(result, finished);
+          }
         }
         if (drawing) drawOverlay(result.landmarks, drawing, video);
 
@@ -987,7 +1010,9 @@ export default function HandTracker() {
   }, [
     drawOverlay,
     isCalibratingRef,
+    pointerActiveRef,
     processCalibrationFrame,
+    processPointerFrame,
     processDynamicGestures,
     processGestureActions,
     processPinchControl,
@@ -1133,8 +1158,18 @@ export default function HandTracker() {
         releaseRequired,
         mode,
         hands,
+        pointerActive: pointerMode.active,
       }),
-    [accessOpen, camera, controlActive, emergencyLocked, hands, mode, releaseRequired],
+    [
+      accessOpen,
+      camera,
+      controlActive,
+      emergencyLocked,
+      hands,
+      mode,
+      pointerMode.active,
+      releaseRequired,
+    ],
   );
 
   const handleCameraSelect = useCallback((deviceId: string) => {
@@ -1279,6 +1314,11 @@ export default function HandTracker() {
           onStart={calibration.start}
           onCancel={calibration.cancel}
           onReset={calibration.reset}
+        />
+        <PointerModePanel
+          active={pointerMode.active}
+          reason={pointerMode.reason}
+          onToggle={pointerMode.toggle}
         />
         <ActionMapperPanel actionMap={actionMap} onActionChange={handleActionChange} />
         <LiveGesturesPanel gestures={gestures} />
