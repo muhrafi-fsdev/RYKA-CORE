@@ -2,233 +2,86 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DrawingUtils,
   FilesetResolver,
-  GestureRecognizer
-  
+  GestureRecognizer,
 } from "@mediapipe/tasks-vision";
 import toast from "react-hot-toast";
-import type {NormalizedLandmark} from "@mediapipe/tasks-vision";
-import type {OrbSceneApi, OrbVisualState} from "@/lib/orbScene";
-import type {GestureKey, StaticGestureKey} from "@/lib/gestureEngine";
-import type {BridgePermissions, DesktopBridgeAction} from "@/lib/desktopBridge";
-import type {EffectHandsMode, EffectSelection, LegacyEffectMode} from "@/lib/legacyEffects";
-import {   createOrbScene } from "@/lib/orbScene";
-import { DynamicGestureDetector } from "@/lib/dynamicGesture";
-import {  GestureStabilizer  } from "@/lib/gestureEngine";
+import { ControlDock } from "./hand-tracker/ControlDock";
+import { TopHud } from "./hand-tracker/TopHud";
+import { usePersistedSetting } from "./hand-tracker/usePersistedSetting";
+import { readCompatStorage, readStorage } from "./hand-tracker/storage";
 import {
-  
-  
+  ACTION_LABELS,
+  DESKTOP_ACTIONS,
+  GESTURE_LABELS,
+  MODEL_URL,
+  PINCH_OFF,
+  PINCH_ON,
+  PROFILE_MAPS,
+  PROFILE_MODES,
+  QUALITY_CONFIG,
+  ROTATE_SPEED,
+  VIEW_MODES,
+  WASM_URL,
+} from "./hand-tracker/constants";
+import {
+  buildLogExport,
+  clampHandCount,
+  deriveOrbState,
+  deriveStatusText,
+  dist2d,
+  formatTime,
+  normalizeActionMap,
+} from "./hand-tracker/logic";
+import { ActionLogPanel } from "./hand-tracker/panels/ActionLogPanel";
+import { ActionMapperPanel } from "./hand-tracker/panels/ActionMapperPanel";
+import { CameraManagerPanel } from "./hand-tracker/panels/CameraManagerPanel";
+import { LiveGesturesPanel } from "./hand-tracker/panels/LiveGesturesPanel";
+import { OptionGridSection } from "./hand-tracker/panels/OptionGridSection";
+import { SecurityCenterPanel } from "./hand-tracker/panels/SecurityCenterPanel";
+import {
+  AccessLauncherSection,
+  ControlStateSection,
+  DesktopBridgeInfoSection,
+} from "./hand-tracker/panels/StatusSections";
+import { SystemPanel } from "./hand-tracker/panels/SystemPanel";
+import { TriggerSafetyPanel } from "./hand-tracker/panels/TriggerSafetyPanel";
+import { VisualCompatibilityPanel } from "./hand-tracker/panels/VisualCompatibilityPanel";
+import type {
+  EffectHandsMode,
+  EffectSelection,
+  LegacyEffectMode,
+} from "@/lib/legacyEffects";
+import type { BridgePermissions, DesktopBridgeAction } from "@/lib/desktopBridge";
+import type { GestureKey, StaticGestureKey } from "@/lib/gestureEngine";
+import type { OrbSceneApi } from "@/lib/orbScene";
+import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
+import type {
+  ActionKey,
+  ActionLog,
+  ActionMap,
+  BridgeState,
+  CameraState,
+  CameraViewMode,
+  HandGesture,
+  PinchState,
+  ProfileMode,
+  QualityMode,
+  TrackerMode,
+  ViewMode,
+} from "./hand-tracker/types";
+import { drawLegacyHandEffect } from "@/lib/legacyEffects";
+import RykaAccess from "@/components/RykaAccess";
+import { OneEuroFilter } from "@/lib/oneEuroFilter";
+import {
   armBridge,
   emergencyStopBridge,
   getBridgeSecurityState,
   sendDesktopAction,
-  updateBridgePermissions
+  updateBridgePermissions,
 } from "@/lib/desktopBridge";
-import { OneEuroFilter } from "@/lib/oneEuroFilter";
-import RykaAccess from "@/components/RykaAccess";
-import {
-  
-  
-  
-  drawLegacyHandEffect
-} from "@/lib/legacyEffects";
-
-type CameraState = "off" | "starting" | "on" | "error";
-type TrackerMode = "idle" | "spin" | "zoom";
-type ProfileMode = "presentation" | "media" | "custom";
-type QualityMode = "performance" | "balanced" | "quality";
-type ViewMode = "command" | "minimal" | "debug";
-type CameraViewMode = "composite" | "skeleton" | "clean";
-type BridgeState = "checking" | "online" | "offline";
-type ActionKey =
-  | "none"
-  | "next-slide"
-  | "previous-slide"
-  | "play-pause"
-  | "mute"
-  | "screenshot"
-  | "pointer-mode"
-  | "scan-pulse"
-  | "reset-orb"
-  | "volume-up"
-  | "volume-down"
-  | "next-track"
-  | "previous-track";
-
-type ActionMap = Record<GestureKey, ActionKey>;
-
-type HandGesture = {
-  handedness: string;
-  gesture: string;
-  score: number;
-};
-
-type ActionLog = {
-  id: number;
-  time: string;
-  gesture: string;
-  action: string;
-  score: number;
-};
-
-type PinchState = {
-  pinching: boolean;
-  grab: { x: number; y: number };
-};
-
-const WASM_URL =
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task";
-
-const PINCH_ON = 0.32;
-const PINCH_OFF = 0.45;
-const ROTATE_SPEED = 5;
-
-const QUALITY_CONFIG: Record<
-  QualityMode,
-  { width: number; height: number; frameRate: number; inferenceInterval: number }
-> = {
-  performance: { width: 640, height: 360, frameRate: 24, inferenceInterval: 42 },
-  balanced: { width: 960, height: 540, frameRate: 30, inferenceInterval: 30 },
-  quality: { width: 1280, height: 720, frameRate: 30, inferenceInterval: 18 },
-};
-
-const DESKTOP_ACTIONS = new Set<ActionKey>([
-  "next-slide",
-  "previous-slide",
-  "play-pause",
-  "mute",
-  "volume-up",
-  "volume-down",
-  "next-track",
-  "previous-track",
-]);
-
-const GESTURES: Array<GestureKey> = [
-  "Closed_Fist",
-  "Open_Palm",
-  "Pointing_Up",
-  "Thumb_Down",
-  "Thumb_Up",
-  "Victory",
-  "ILoveYou",
-  "Swipe_Left",
-  "Swipe_Right",
-  "Swipe_Up",
-  "Swipe_Down",
-];
-
-const GESTURE_LABELS: Record<GestureKey | "None", string> = {
-  Closed_Fist: "CLOSED FIST",
-  Open_Palm: "OPEN PALM",
-  Pointing_Up: "POINTING UP",
-  Thumb_Down: "THUMB DOWN",
-  Thumb_Up: "THUMB UP",
-  Victory: "VICTORY",
-  ILoveYou: "I LOVE YOU",
-  Swipe_Left: "SWIPE LEFT",
-  Swipe_Right: "SWIPE RIGHT",
-  Swipe_Up: "SWIPE UP",
-  Swipe_Down: "SWIPE DOWN",
-  None: "NO GESTURE",
-};
-
-const ACTION_LABELS: Record<ActionKey, string> = {
-  none: "NO ACTION",
-  "next-slide": "NEXT SLIDE",
-  "previous-slide": "PREVIOUS SLIDE",
-  "play-pause": "PLAY / PAUSE",
-  mute: "MUTE",
-  screenshot: "CAPTURE SCREENSHOT",
-  "pointer-mode": "POINTER MODE",
-  "scan-pulse": "SCAN PULSE",
-  "reset-orb": "RESET ORB",
-  "volume-up": "VOLUME UP",
-  "volume-down": "VOLUME DOWN",
-  "next-track": "NEXT TRACK",
-  "previous-track": "PREVIOUS TRACK",
-};
-
-const PROFILE_MAPS: Record<ProfileMode, ActionMap> = {
-  presentation: {
-    Closed_Fist: "none",
-    Open_Palm: "none",
-    Pointing_Up: "next-slide",
-    Thumb_Down: "previous-slide",
-    Thumb_Up: "pointer-mode",
-    Victory: "screenshot",
-    ILoveYou: "scan-pulse",
-    Swipe_Left: "previous-slide",
-    Swipe_Right: "next-slide",
-    Swipe_Up: "pointer-mode",
-    Swipe_Down: "reset-orb",
-  },
-  media: {
-    Closed_Fist: "none",
-    Open_Palm: "none",
-    Pointing_Up: "play-pause",
-    Thumb_Down: "mute",
-    Thumb_Up: "play-pause",
-    Victory: "screenshot",
-    ILoveYou: "reset-orb",
-    Swipe_Left: "previous-track",
-    Swipe_Right: "next-track",
-    Swipe_Up: "volume-up",
-    Swipe_Down: "volume-down",
-  },
-  custom: {
-    Closed_Fist: "none",
-    Open_Palm: "none",
-    Pointing_Up: "next-slide",
-    Thumb_Down: "previous-slide",
-    Thumb_Up: "play-pause",
-    Victory: "screenshot",
-    ILoveYou: "scan-pulse",
-    Swipe_Left: "previous-slide",
-    Swipe_Right: "next-slide",
-    Swipe_Up: "volume-up",
-    Swipe_Down: "volume-down",
-  },
-};
-
-function readStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-
-function readCompatStorage<T>(newKey: string, legacyKey: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const newValue = readStorage<T>(newKey, fallback);
-    if (localStorage.getItem(newKey) !== null) return newValue;
-    return readStorage<T>(legacyKey, fallback);
-  } catch {
-    return fallback;
-  }
-}
-
-function normalizeActionMap(map: Partial<ActionMap>): ActionMap {
-  return { ...PROFILE_MAPS.presentation, ...map };
-}
-
-function dist2d(a: NormalizedLandmark, b: NormalizedLandmark) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
-function formatTime() {
-  return new Date().toLocaleTimeString("id-ID", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
+import { GestureStabilizer } from "@/lib/gestureEngine";
+import { DynamicGestureDetector } from "@/lib/dynamicGesture";
+import { createOrbScene } from "@/lib/orbScene";
 
 export default function HandTracker() {
   const sceneContainerRef = useRef<HTMLDivElement>(null);
@@ -408,40 +261,22 @@ export default function HandTracker() {
     if (accessOpen) setPanelOpen(false);
   }, [accessOpen]);
 
-  useEffect(() => {
-    actionMapRef.current = actionMap;
-    localStorage.setItem("ryka-core-action-map", JSON.stringify(actionMap));
-  }, [actionMap]);
+  usePersistedSetting(actionMap, "ryka-core-action-map", actionMapRef);
 
-  useEffect(() => {
-    thresholdRef.current = threshold;
-    localStorage.setItem("ryka-core-threshold", JSON.stringify(threshold));
-  }, [threshold]);
+  usePersistedSetting(threshold, "ryka-core-threshold", thresholdRef);
 
-  useEffect(() => {
-    holdMsRef.current = holdMs;
-    localStorage.setItem("ryka-core-hold", JSON.stringify(holdMs));
-  }, [holdMs]);
+  usePersistedSetting(holdMs, "ryka-core-hold", holdMsRef);
 
-  useEffect(() => {
-    cooldownMsRef.current = cooldownMs;
-    localStorage.setItem("ryka-core-cooldown", JSON.stringify(cooldownMs));
-  }, [cooldownMs]);
+  usePersistedSetting(cooldownMs, "ryka-core-cooldown", cooldownMsRef);
 
   useEffect(() => {
     localStorage.setItem("ryka-core-profile", JSON.stringify(profile));
     if (profile !== "custom") setActionMap(PROFILE_MAPS[profile]);
   }, [profile]);
 
-  useEffect(() => {
-    selectedCameraRef.current = selectedCameraId;
-    localStorage.setItem("ryka-core-camera-id", JSON.stringify(selectedCameraId));
-  }, [selectedCameraId]);
+  usePersistedSetting(selectedCameraId, "ryka-core-camera-id", selectedCameraRef);
 
-  useEffect(() => {
-    qualityRef.current = quality;
-    localStorage.setItem("ryka-core-quality", JSON.stringify(quality));
-  }, [quality]);
+  usePersistedSetting(quality, "ryka-core-quality", qualityRef);
 
   useEffect(() => {
     adaptivePerformanceRef.current = adaptivePerformance;
@@ -452,12 +287,10 @@ export default function HandTracker() {
     }
   }, [adaptivePerformance]);
 
-  useEffect(() => {
-    localStorage.setItem("ryka-core-view", JSON.stringify(viewMode));
-  }, [viewMode]);
+  usePersistedSetting(viewMode, "ryka-core-view");
 
   useEffect(() => {
-    const normalized = Math.min(4, Math.max(1, Number(numHands) || 1));
+    const normalized = clampHandCount(numHands);
     numHandsRef.current = normalized;
     localStorage.setItem("ryka-core-num-hands", JSON.stringify(normalized));
     if (recognizerRef.current) {
@@ -465,15 +298,9 @@ export default function HandTracker() {
     }
   }, [numHands]);
 
-  useEffect(() => {
-    skeletonOnRef.current = skeletonOn;
-    localStorage.setItem("ryka-core-skeleton", JSON.stringify(skeletonOn));
-  }, [skeletonOn]);
+  usePersistedSetting(skeletonOn, "ryka-core-skeleton", skeletonOnRef);
 
-  useEffect(() => {
-    landmarksOnRef.current = landmarksOn;
-    localStorage.setItem("ryka-core-landmarks", JSON.stringify(landmarksOn));
-  }, [landmarksOn]);
+  usePersistedSetting(landmarksOn, "ryka-core-landmarks", landmarksOnRef);
 
   useEffect(() => {
     effectsOnRef.current = effectsOn;
@@ -484,41 +311,17 @@ export default function HandTracker() {
     }
   }, [effectsOn]);
 
-  useEffect(() => {
-    cameraViewRef.current = cameraView;
-    localStorage.setItem("ryka-core-camera-view", JSON.stringify(cameraView));
-  }, [cameraView]);
+  usePersistedSetting(cameraView, "ryka-core-camera-view", cameraViewRef);
 
-  useEffect(() => {
-    mirrorCameraRef.current = mirrorCamera;
-    localStorage.setItem("ryka-core-mirror-camera", JSON.stringify(mirrorCamera));
-  }, [mirrorCamera]);
+  usePersistedSetting(mirrorCamera, "ryka-core-mirror-camera", mirrorCameraRef);
 
-  useEffect(() => {
-    effectSelectionRef.current = effectSelection;
-    localStorage.setItem(
-      "ryka-core-effect-selection",
-      JSON.stringify(effectSelection),
-    );
-  }, [effectSelection]);
+  usePersistedSetting(effectSelection, "ryka-core-effect-selection", effectSelectionRef);
 
-  useEffect(() => {
-    effectHandsModeRef.current = effectHandsMode;
-    localStorage.setItem("ryka-core-effect-hands", JSON.stringify(effectHandsMode));
-  }, [effectHandsMode]);
+  usePersistedSetting(effectHandsMode, "ryka-core-effect-hands", effectHandsModeRef);
 
-  useEffect(() => {
-    blurStrengthRef.current = blurStrength;
-    localStorage.setItem("ryka-core-blur-strength", JSON.stringify(blurStrength));
-  }, [blurStrength]);
+  usePersistedSetting(blurStrength, "ryka-core-blur-strength", blurStrengthRef);
 
-  useEffect(() => {
-    mosaicBlockSizeRef.current = mosaicBlockSize;
-    localStorage.setItem(
-      "ryka-core-mosaic-block",
-      JSON.stringify(mosaicBlockSize),
-    );
-  }, [mosaicBlockSize]);
+  usePersistedSetting(mosaicBlockSize, "ryka-core-mosaic-block", mosaicBlockSizeRef);
 
   useEffect(() => {
     smoothingRef.current = motionSmoothing;
@@ -529,12 +332,7 @@ export default function HandTracker() {
     motionFiltersRef.current.clear();
   }, [motionSmoothing]);
 
-  useEffect(() => {
-    localStorage.setItem(
-      "ryka-core-camera-expanded",
-      JSON.stringify(cameraExpanded),
-    );
-  }, [cameraExpanded]);
+  usePersistedSetting(cameraExpanded, "ryka-core-camera-expanded");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -591,12 +389,15 @@ export default function HandTracker() {
   }, [refreshCameraDevices]);
 
   useEffect(() => {
-    let state: OrbVisualState = "idle";
-    if (error || camera === "error") state = "error";
-    else if (camera === "on" && !controlActive) state = "locked";
-    else if (scanPulse) state = "triggered";
-    else if (camera === "on" && (holdProgress > 0 || releaseRequired)) state = "holding";
-    else if (camera === "on" && controlActive && hands > 0) state = "tracking";
+    const state = deriveOrbState({
+      camera,
+      error,
+      controlActive,
+      scanPulse,
+      holdProgress,
+      releaseRequired,
+      hands,
+    });
     sceneRef.current?.setState(state);
     sceneRef.current?.setEnergy(holdProgress / 100);
   }, [camera, controlActive, error, hands, holdProgress, releaseRequired, scanPulse]);
@@ -1201,23 +1002,8 @@ export default function HandTracker() {
         toast.error("NO ACTION LOG TO EXPORT");
         return;
       }
-      const content =
-        format === "json"
-          ? JSON.stringify(logs, null, 2)
-          : [
-              "time,gesture,action,score",
-              ...logs.map((item) =>
-                [
-                  item.time,
-                  `"${item.gesture.replaceAll('"', '""')}"`,
-                  `"${item.action.replaceAll('"', '""')}"`,
-                  item.score.toFixed(4),
-                ].join(","),
-              ),
-            ].join("\n");
-      const blob = new Blob([content], {
-        type: format === "json" ? "application/json" : "text/csv",
-      });
+      const { content, mimeType } = buildLogExport(logs, format);
+      const blob = new Blob([content], { type: mimeType });
       const anchor = document.createElement("a");
       anchor.href = URL.createObjectURL(blob);
       anchor.download = `ryka-core-log-${Date.now()}.${format}`;
@@ -1322,18 +1108,34 @@ export default function HandTracker() {
 
   useEffect(() => stopGestures, [stopGestures]);
 
-  const statusText = useMemo(() => {
-    if (accessOpen) return "RYKA ACCESS";
-    if (camera === "starting") return "INITIALIZING";
-    if (camera === "error") return "SYSTEM ERROR";
-    if (camera === "off") return "GESTURES OFF";
-    if (emergencyLocked) return "SECURITY LOCK";
-    if (!controlActive) return "CONTROL LOCKED";
-    if (releaseRequired) return "RELEASE REQUIRED";
-    if (mode === "spin") return "ORB SPIN";
-    if (mode === "zoom") return "ORB ZOOM";
-    return hands > 0 ? "TRACKING" : "STANDBY";
-  }, [accessOpen, camera, controlActive, emergencyLocked, hands, mode, releaseRequired]);
+  const statusText = useMemo(
+    () =>
+      deriveStatusText({
+        accessOpen,
+        camera,
+        emergencyLocked,
+        controlActive,
+        releaseRequired,
+        mode,
+        hands,
+      }),
+    [accessOpen, camera, controlActive, emergencyLocked, hands, mode, releaseRequired],
+  );
+
+  const handleCameraSelect = useCallback((deviceId: string) => {
+    selectedCameraRef.current = deviceId;
+    setSelectedCameraId(deviceId);
+  }, []);
+
+  const handleQualityChange = useCallback((value: QualityMode) => {
+    qualityRef.current = value;
+    setQuality(value);
+  }, []);
+
+  const handleActionChange = useCallback((gesture: GestureKey, action: ActionKey) => {
+    setProfile("custom");
+    setActionMap((current) => ({ ...current, [gesture]: action }));
+  }, []);
 
   return (
     <main className={`ultron-root ultron-view-${viewMode}`}>
@@ -1343,618 +1145,122 @@ export default function HandTracker() {
       <div className="ultron-scanlines" />
       {scanPulse && <div className="ultron-scan-pulse" />}
 
-      <header className="ultron-hud ultron-title">
-        <div>RYKA CORE</div>
-        <small>OPERATOR: MUHAMMAD RAFI PRIYO // PERSONAL ACCESS & PARTNER COMMUNICATION 4.4</small>
-      </header>
+      <TopHud
+        statusText={statusText}
+        camera={camera}
+        accessOpen={accessOpen}
+        profile={profile}
+        bridgeState={bridgeState}
+      />
 
-      <div className="ultron-hud ultron-status-top">
-        <span className={`ultron-dot ${camera === "on" ? "online" : ""}`} />
-        <span>{statusText}</span>
-        <span className="ultron-divider">//</span>
-        <span>{accessOpen ? "ACCESS" : profile.toUpperCase()}</span>
-        <span className="ultron-divider">//</span>
-        <span className={`ultron-bridge-state ${bridgeState}`}>
-          BRIDGE {bridgeState.toUpperCase()}
-        </span>
-      </div>
+      <ControlDock
+        videoRef={videoRef}
+        overlayRef={overlayRef}
+        camera={camera}
+        cameraExpanded={cameraExpanded}
+        mirrorCamera={mirrorCamera}
+        cameraView={cameraView}
+        hands={hands}
+        numHands={numHands}
+        mode={mode}
+        fps={fps}
+        quality={quality}
+        activeEffectMode={activeEffectMode}
+        candidate={candidate}
+        holdProgress={holdProgress}
+        inferenceMs={inferenceMs}
+        adaptiveDelay={adaptiveDelay}
+        lastDynamicGesture={lastDynamicGesture}
+        error={error}
+        accessOpen={accessOpen}
+        panelOpen={panelOpen}
+        onToggleCameraExpanded={() => setCameraExpanded((value) => !value)}
+        onToggleGestures={toggleGestures}
+        onOpenAccess={() => setAccessOpen(true)}
+        onTogglePanel={() => setPanelOpen((value) => !value)}
+        onZoomIn={() => sceneRef.current?.zoomIn()}
+        onZoomOut={() => sceneRef.current?.zoomOut()}
+        onResetView={() => sceneRef.current?.resetView()}
+      />
 
-      <div className="ultron-hud ultron-hints">
-        <div>
-          <span className="ultron-key">DRAG</span> SPIN&nbsp;&nbsp;
-          <span className="ultron-key">SCROLL</span> ZOOM
-        </div>
-        <div>
-          <span className="ultron-key">PINCH 1 HAND</span> ROTATE&nbsp;&nbsp;
-          <span className="ultron-key">PINCH 2 HANDS</span> ZOOM
-        </div>
-        <div>
-          <span className="ultron-key">CLOSED FIST</span> ARM&nbsp;&nbsp;
-          <span className="ultron-key">OPEN PALM</span> LOCK
-        </div>
-        <div>
-          <span className="ultron-key">SWIPE</span> DYNAMIC COMMANDS&nbsp;&nbsp;
-          <span className="ultron-key">RELEASE</span> ANTI-REPEAT
-        </div>
-        <div>
-          <span className="ultron-key">G</span> GESTURES&nbsp;&nbsp;
-          <span className="ultron-key">P</span> PANEL&nbsp;&nbsp;
-          <span className="ultron-key">A</span> ACCESS&nbsp;&nbsp;
-          <span className="ultron-key">R</span> RESET&nbsp;&nbsp;
-          <span className="ultron-key">1/2/3</span> VIEW&nbsp;&nbsp;
-          <span className="ultron-key">CTRL+SHIFT+F12</span> EMERGENCY STOP
-        </div>
-      </div>
-
-      <section className="ultron-hud ultron-controls">
-        <div
-          className={`ultron-camera ${camera === "on" ? "visible" : ""} ${
-            cameraExpanded ? "expanded" : ""
-          }`}
-        >
-          <video
-            ref={videoRef}
-            muted
-            playsInline
-            className={`ultron-camera-video ${
-              mirrorCamera ? "" : "unmirrored"
-            } ${cameraView === "skeleton" ? "camera-hidden" : ""} ${
-              cameraView === "clean" ? "camera-clean-feed" : ""
-            }`}
-          />
-          <canvas
-            ref={overlayRef}
-            width={208}
-            height={156}
-            className={`ultron-camera-overlay ${
-              mirrorCamera ? "" : "unmirrored"
-            } ${cameraView === "clean" ? "overlay-hidden" : ""}`}
-          />
-          <button
-            type="button"
-            className="ultron-camera-expand"
-            onClick={() => setCameraExpanded((value) => !value)}
-            aria-label={cameraExpanded ? "Minimize vision preview" : "Expand vision preview"}
-          >
-            {cameraExpanded ? "MIN" : "MAX"}
-          </button>
-          <div className="ultron-camera-status">
-            {hands > 0
-              ? `${hands}/${numHands} HAND${hands > 1 ? "S" : ""} // ${mode.toUpperCase()} // ${fps} FPS // ${quality.toUpperCase()}${
-                  activeEffectMode ? ` // ${activeEffectMode.toUpperCase()}` : ""
-                }`
-              : `SHOW HANDS // MAX ${numHands}`}
-          </div>
-        </div>
-
-        {camera === "on" && (
-          <div className="ultron-candidate-box">
-            <div>{candidate}</div>
-            <div className="ultron-progress-track">
-              <span style={{ width: `${holdProgress}%` }} />
-            </div>
-            <small>
-              {inferenceMs.toFixed(1)} MS INFERENCE // ADAPTIVE +{adaptiveDelay} MS
-            </small>
-            <small>DYNAMIC: {lastDynamicGesture}</small>
-          </div>
-        )}
-
-        {error && <div className="ultron-error">{error}</div>}
-
-        <div className="ultron-row">
-          <button
-            type="button"
-            className="ultron-button ultron-button-wide"
-            aria-pressed={camera === "on"}
-            onClick={toggleGestures}
-            disabled={camera === "starting"}
-          >
-            {camera === "starting"
-              ? "INITIALIZING…"
-              : camera === "on"
-                ? "GESTURES ON"
-                : "GESTURES OFF"}
-          </button>
-          <button
-            type="button"
-            className="ultron-button"
-            aria-pressed={accessOpen}
-            onClick={() => setAccessOpen(true)}
-          >
-            ACCESS
-          </button>
-          <button
-            type="button"
-            className="ultron-button"
-            aria-pressed={panelOpen}
-            onClick={() => setPanelOpen((value) => !value)}
-          >
-            SYS
-          </button>
-        </div>
-        <div className="ultron-row">
-          <button
-            type="button"
-            className="ultron-button"
-            onClick={() => sceneRef.current?.zoomIn()}
-          >
-            +
-          </button>
-          <button
-            type="button"
-            className="ultron-button"
-            onClick={() => sceneRef.current?.zoomOut()}
-          >
-            −
-          </button>
-          <button
-            type="button"
-            className="ultron-button ultron-button-wide"
-            onClick={() => sceneRef.current?.resetView()}
-          >
-            RESET
-          </button>
-        </div>
-      </section>
-
-      <aside className={`ultron-panel ${panelOpen ? "open" : ""}`}>
-        <div className="ultron-panel-header">
-          <div>
-            <p>RYKA CORE SYSTEM</p>
-            <small>ACCESSIBILITY + LEGACY VISUALS + HMAC SECURITY + WINDOWS BRIDGE</small>
-          </div>
-          <button type="button" onClick={() => setPanelOpen(false)}>
-            ×
-          </button>
-        </div>
-
-        <div className="ultron-panel-scroll">
-          <section className="ultron-panel-section">
-            <h2>CONTROL STATE</h2>
-            <button
-              type="button"
-              className={`ultron-arm-button ${controlActive ? "armed" : ""}`}
-              onClick={() => setControlActive((value) => !value)}
-            >
-              {controlActive ? "SYSTEM ARMED" : "SYSTEM LOCKED"}
-            </button>
-            <p>
-              Hold CLOSED FIST for 1.2 seconds to arm. Hold OPEN PALM for 1.2 seconds to lock.
-            </p>
-          </section>
-
-          <section className="ultron-panel-section">
-            <div className="ultron-section-heading-row">
-              <h2>RYKA ACCESS</h2>
-              <span className="ultron-bridge-state online">LOCAL</span>
-            </div>
-            <p>
-              Gesture-to-text, quick phrase board, text-to-speech, live caption,
-              conversation mode, visual sound alerts, emergency communication,
-              personal gesture profiles, and accessible display settings.
-            </p>
-            <button type="button" onClick={() => setAccessOpen(true)}>
-              OPEN ACCESS SUITE
-            </button>
-          </section>
-
-          <section className="ultron-panel-section">
-            <div className="ultron-section-heading-row">
-              <h2>DESKTOP BRIDGE</h2>
-              <span className={`ultron-bridge-state ${bridgeState}`}>
-                {bridgeState.toUpperCase()}
-              </span>
-            </div>
-            <p>
-              Run <strong>npm run dev:desktop</strong> to enable real Windows slide,
-              media, volume, and track controls. Only allowlisted commands are accepted.
-            </p>
-          </section>
-
-          <section className="ultron-panel-section">
-            <div className="ultron-section-heading-row">
-              <h2>SECURITY CENTER</h2>
-              <span className={`ultron-bridge-state ${emergencyLocked ? "offline" : bridgeState}`}>
-                {emergencyLocked ? "EMERGENCY LOCK" : bridgeSecurity}
-              </span>
-            </div>
-            <p className="ultron-safety-note">
-              Secure Bridge v{bridgeVersion}: per-session 256-bit bootstrap, HMAC-SHA256
-              signing, timestamp validation, nonce replay protection, rate limiting,
-              strict Origin/Host checks, and local security audit logs.
-            </p>
-            <div className="ultron-camera-config">
-              <label className="ultron-check-row">
-                <span>PRESENTATION COMMANDS</span>
-                <input
-                  type="checkbox"
-                  checked={bridgePermissions.presentation}
-                  disabled={securityBusy || bridgeState !== "online" || emergencyLocked}
-                  onChange={(event) =>
-                    void handlePermissionChange("presentation", event.target.checked)
-                  }
-                />
-              </label>
-              <label className="ultron-check-row">
-                <span>MEDIA / VOLUME COMMANDS</span>
-                <input
-                  type="checkbox"
-                  checked={bridgePermissions.media}
-                  disabled={securityBusy || bridgeState !== "online" || emergencyLocked}
-                  onChange={(event) =>
-                    void handlePermissionChange("media", event.target.checked)
-                  }
-                />
-              </label>
-              <div className="ultron-row">
-                <button
-                  type="button"
-                  disabled={securityBusy || bridgeState !== "online" || emergencyLocked}
-                  onClick={() => void handleEmergencyStop()}
-                >
-                  EMERGENCY STOP
-                </button>
-                <button
-                  type="button"
-                  disabled={securityBusy || bridgeState !== "online" || !emergencyLocked}
-                  onClick={() => void handleArmBridge()}
-                >
-                  RE-ARM BRIDGE
-                </button>
-              </div>
-            </div>
-            <p>
-              Emergency shortcut: <strong>Ctrl + Shift + F12</strong>. Audit file:
-              <strong> logs/security-audit.jsonl</strong>. Raw shell commands remain blocked.
-            </p>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>RAFI HANDMOTION COMPATIBILITY</h2>
-            <p className="ultron-safety-note">
-              Legacy controls are preserved: 1–4 hands, skeleton, landmarks,
-              mirror, Blur, Mosaic, and Flip 180°. All settings persist locally.
-            </p>
-            <div className="ultron-camera-config">
-              <label>
-                <span>MAXIMUM HANDS</span>
-                <select
-                  value={numHands}
-                  onChange={(event) => setNumHands(Number(event.target.value))}
-                >
-                  <option value={1}>1 HAND</option>
-                  <option value={2}>2 HANDS</option>
-                  <option value={3}>3 HANDS</option>
-                  <option value={4}>4 HANDS</option>
-                </select>
-              </label>
-              <label>
-                <span>CAMERA VIEW</span>
-                <select
-                  value={cameraView}
-                  onChange={(event) =>
-                    setCameraView(event.target.value as CameraViewMode)
-                  }
-                >
-                  <option value="composite">COMPOSITE // VIDEO + VISUALS</option>
-                  <option value="skeleton">SKELETON ONLY</option>
-                  <option value="clean">CLEAN CAMERA</option>
-                </select>
-              </label>
-              <label className="ultron-check-row">
-                <span>SKELETON CONNECTIONS</span>
-                <input
-                  type="checkbox"
-                  checked={skeletonOn}
-                  onChange={(event) => setSkeletonOn(event.target.checked)}
-                />
-              </label>
-              <label className="ultron-check-row">
-                <span>LANDMARK POINTS</span>
-                <input
-                  type="checkbox"
-                  checked={landmarksOn}
-                  onChange={(event) => setLandmarksOn(event.target.checked)}
-                />
-              </label>
-              <label className="ultron-check-row">
-                <span>LEGACY VISUAL EFFECTS</span>
-                <input
-                  type="checkbox"
-                  checked={effectsOn}
-                  onChange={(event) => setEffectsOn(event.target.checked)}
-                />
-              </label>
-              <label className="ultron-check-row">
-                <span>MIRROR CAMERA</span>
-                <input
-                  type="checkbox"
-                  checked={mirrorCamera}
-                  onChange={(event) => setMirrorCamera(event.target.checked)}
-                />
-              </label>
-              <label>
-                <span>EFFECT MODE</span>
-                <select
-                  value={effectSelection}
-                  disabled={!effectsOn}
-                  onChange={(event) =>
-                    setEffectSelection(event.target.value as EffectSelection)
-                  }
-                >
-                  <option value="auto">AUTO // THUMB DIRECTION</option>
-                  <option value="blur">BLUR</option>
-                  <option value="mosaic">MOSAIC</option>
-                  <option value="flip">FLIP 180°</option>
-                </select>
-              </label>
-              <label>
-                <span>EFFECT HANDS</span>
-                <select
-                  value={effectHandsMode}
-                  disabled={!effectsOn}
-                  onChange={(event) =>
-                    setEffectHandsMode(event.target.value as EffectHandsMode)
-                  }
-                >
-                  <option value="auto">AUTO // 1 OR 2 HANDS</option>
-                  <option value="single">FIRST HAND ONLY</option>
-                  <option value="dual">REQUIRE TWO HANDS</option>
-                </select>
-              </label>
-            </div>
-            <label>
-              <span>BLUR STRENGTH</span>
-              <strong>{blurStrength} PX</strong>
-              <input
-                type="range"
-                min={2}
-                max={30}
-                value={blurStrength}
-                disabled={!effectsOn}
-                onChange={(event) => setBlurStrength(Number(event.target.value))}
-              />
-            </label>
-            <label>
-              <span>MOSAIC BLOCK SIZE</span>
-              <strong>{mosaicBlockSize} PX</strong>
-              <input
-                type="range"
-                min={4}
-                max={40}
-                value={mosaicBlockSize}
-                disabled={!effectsOn}
-                onChange={(event) =>
-                  setMosaicBlockSize(Number(event.target.value))
-                }
-              />
-            </label>
-            <label>
-              <span>MOTION SMOOTHING // 1€ FILTER</span>
-              <strong>{motionSmoothing}%</strong>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={motionSmoothing}
-                onChange={(event) =>
-                  setMotionSmoothing(Number(event.target.value))
-                }
-              />
-            </label>
-            <p>
-              Active effect: <strong>{activeEffectMode?.toUpperCase() ?? "IDLE"}</strong>.
-              Auto mode preserves the original thumb/index behavior from Rafi
-              HandMotion Modified.
-            </p>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>CAMERA MANAGER</h2>
-            <div className="ultron-camera-config">
-              <label>
-                <span>VIDEO INPUT</span>
-                <select
-                  value={selectedCameraId}
-                  onChange={(event) => {
-                    selectedCameraRef.current = event.target.value;
-                    setSelectedCameraId(event.target.value);
-                  }}
-                >
-                  <option value="">SYSTEM DEFAULT CAMERA</option>
-                  {cameraDevices.map((device, index) => (
-                    <option key={device.deviceId} value={device.deviceId}>
-                      {device.label || `CAMERA ${index + 1}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span>QUALITY PROFILE</span>
-                <select
-                  value={quality}
-                  onChange={(event) => {
-                    const value = event.target.value as QualityMode;
-                    qualityRef.current = value;
-                    setQuality(value);
-                  }}
-                >
-                  <option value="performance">PERFORMANCE // 640×360</option>
-                  <option value="balanced">BALANCED // 960×540</option>
-                  <option value="quality">QUALITY // 1280×720</option>
-                </select>
-              </label>
-              <label className="ultron-check-row">
-                <span>ADAPTIVE FRAME SKIP</span>
-                <input
-                  type="checkbox"
-                  checked={adaptivePerformance}
-                  onChange={(event) => setAdaptivePerformance(event.target.checked)}
-                />
-              </label>
-              <div className="ultron-row">
-                <button type="button" onClick={() => void refreshCameraDevices()}>
-                  REFRESH
-                </button>
-                <button type="button" onClick={applyCameraSettings}>
-                  APPLY / RESTART
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>INTERFACE VIEW</h2>
-            <div className="ultron-profile-grid">
-              {(["command", "minimal", "debug"] as Array<ViewMode>).map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={viewMode === item ? "active" : ""}
-                  onClick={() => setViewMode(item)}
-                >
-                  {item.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>PROFILE</h2>
-            <div className="ultron-profile-grid">
-              {(["presentation", "media", "custom"] as Array<ProfileMode>).map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={profile === item ? "active" : ""}
-                  onClick={() => setProfile(item)}
-                >
-                  {item.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>TRIGGER SAFETY</h2>
-            <p className="ultron-safety-note">
-              4-frame weighted voting, 260 ms release gate, confidence filtering,
-              hold validation, and cooldown are active.
-            </p>
-            <label>
-              <span>CONFIDENCE</span>
-              <strong>{threshold}%</strong>
-              <input
-                type="range"
-                min={50}
-                max={99}
-                value={threshold}
-                onChange={(event) => setThreshold(Number(event.target.value))}
-              />
-            </label>
-            <label>
-              <span>HOLD DURATION</span>
-              <strong>{holdMs} MS</strong>
-              <input
-                type="range"
-                min={300}
-                max={2000}
-                step={100}
-                value={holdMs}
-                onChange={(event) => setHoldMs(Number(event.target.value))}
-              />
-            </label>
-            <label>
-              <span>COOLDOWN</span>
-              <strong>{cooldownMs} MS</strong>
-              <input
-                type="range"
-                min={500}
-                max={3000}
-                step={100}
-                value={cooldownMs}
-                onChange={(event) => setCooldownMs(Number(event.target.value))}
-              />
-            </label>
-          </section>
-
-          <section className="ultron-panel-section">
-            <h2>ACTION MAPPER</h2>
-            <div className="ultron-mapper-list">
-              {GESTURES.map((gesture) => (
-                <label key={gesture}>
-                  <span>{GESTURE_LABELS[gesture]}</span>
-                  <select
-                    value={actionMap[gesture]}
-                    onChange={(event) => {
-                      setProfile("custom");
-                      setActionMap((current) => ({
-                        ...current,
-                        [gesture]: event.target.value as ActionKey,
-                      }));
-                    }}
-                  >
-                    {Object.entries(ACTION_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          <section className="ultron-panel-section">
-            <div className="ultron-section-heading-row">
-              <h2>LIVE GESTURES</h2>
-              <span>{gestures.length}</span>
-            </div>
-            <div className="ultron-live-list">
-              {gestures.length === 0 ? (
-                <p>NO ACTIVE HAND SIGNATURE</p>
-              ) : (
-                gestures.map((gesture, index) => (
-                  <div key={`${gesture.handedness}-${index}`}>
-                    <span>
-                      {GESTURE_LABELS[
-                        gesture.gesture as GestureKey | "None"
-                      ] ?? gesture.gesture}
-                    </span>
-                    <strong>{Math.round(gesture.score * 100)}%</strong>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          <section className="ultron-panel-section">
-            <div className="ultron-section-heading-row">
-              <h2>ACTION LOG</h2>
-              <div className="ultron-log-actions">
-                <button type="button" onClick={() => exportLogs("json")}>JSON</button>
-                <button type="button" onClick={() => exportLogs("csv")}>CSV</button>
-                <button type="button" onClick={() => setLogs([])}>CLEAR</button>
-              </div>
-            </div>
-            <div className="ultron-log-list">
-              {logs.length === 0 ? (
-                <p>NO COMMANDS TRIGGERED</p>
-              ) : (
-                logs.map((item) => (
-                  <div key={item.id}>
-                    <small>{item.time}</small>
-                    <span>{item.action}</span>
-                    <em>{item.gesture}</em>
-                    <strong>{Math.round(item.score * 100)}%</strong>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
-      </aside>
+      <SystemPanel open={panelOpen} onClose={() => setPanelOpen(false)}>
+        <ControlStateSection
+          controlActive={controlActive}
+          onToggle={() => setControlActive((value) => !value)}
+        />
+        <AccessLauncherSection onOpen={() => setAccessOpen(true)} />
+        <DesktopBridgeInfoSection bridgeState={bridgeState} />
+        <SecurityCenterPanel
+          bridgeState={bridgeState}
+          bridgeSecurity={bridgeSecurity}
+          bridgeVersion={bridgeVersion}
+          bridgePermissions={bridgePermissions}
+          emergencyLocked={emergencyLocked}
+          securityBusy={securityBusy}
+          onPermissionChange={handlePermissionChange}
+          onEmergencyStop={handleEmergencyStop}
+          onArmBridge={handleArmBridge}
+        />
+        <VisualCompatibilityPanel
+          numHands={numHands}
+          cameraView={cameraView}
+          skeletonOn={skeletonOn}
+          landmarksOn={landmarksOn}
+          effectsOn={effectsOn}
+          mirrorCamera={mirrorCamera}
+          effectSelection={effectSelection}
+          effectHandsMode={effectHandsMode}
+          blurStrength={blurStrength}
+          mosaicBlockSize={mosaicBlockSize}
+          motionSmoothing={motionSmoothing}
+          activeEffectMode={activeEffectMode}
+          onNumHandsChange={setNumHands}
+          onCameraViewChange={setCameraView}
+          onSkeletonChange={setSkeletonOn}
+          onLandmarksChange={setLandmarksOn}
+          onEffectsChange={setEffectsOn}
+          onMirrorChange={setMirrorCamera}
+          onEffectSelectionChange={setEffectSelection}
+          onEffectHandsModeChange={setEffectHandsMode}
+          onBlurStrengthChange={setBlurStrength}
+          onMosaicBlockSizeChange={setMosaicBlockSize}
+          onMotionSmoothingChange={setMotionSmoothing}
+        />
+        <CameraManagerPanel
+          selectedCameraId={selectedCameraId}
+          cameraDevices={cameraDevices}
+          quality={quality}
+          adaptivePerformance={adaptivePerformance}
+          onCameraChange={handleCameraSelect}
+          onQualityChange={handleQualityChange}
+          onAdaptiveChange={setAdaptivePerformance}
+          onRefresh={() => void refreshCameraDevices()}
+          onApply={applyCameraSettings}
+        />
+        <OptionGridSection<ViewMode>
+          title="INTERFACE VIEW"
+          options={VIEW_MODES}
+          value={viewMode}
+          onSelect={setViewMode}
+        />
+        <OptionGridSection<ProfileMode>
+          title="PROFILE"
+          options={PROFILE_MODES}
+          value={profile}
+          onSelect={setProfile}
+        />
+        <TriggerSafetyPanel
+          threshold={threshold}
+          holdMs={holdMs}
+          cooldownMs={cooldownMs}
+          onThresholdChange={setThreshold}
+          onHoldMsChange={setHoldMs}
+          onCooldownMsChange={setCooldownMs}
+        />
+        <ActionMapperPanel actionMap={actionMap} onActionChange={handleActionChange} />
+        <LiveGesturesPanel gestures={gestures} />
+        <ActionLogPanel logs={logs} onExport={exportLogs} onClear={() => setLogs([])} />
+      </SystemPanel>
 
       <RykaAccess
         open={accessOpen}
