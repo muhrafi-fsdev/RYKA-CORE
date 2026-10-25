@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSources } from "./lib/read-sources.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const componentPath = resolve(root, "src/components/RykaAccess.tsx");
@@ -13,7 +14,7 @@ for (const path of [componentPath, libraryPath, documentationPath]) {
 }
 
 if (failures.length === 0) {
-  const component = readFileSync(componentPath, "utf8");
+  const component = readSources(componentPath, resolve(root, "src/components/ryka-access"));
   const library = readFileSync(libraryPath, "utf8");
   const requiredMarkers = [
     "QUICK PHRASE BOARD",

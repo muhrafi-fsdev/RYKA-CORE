@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSources } from "./lib/read-sources.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const handTrackerPath = resolve(root, "src/components/HandTracker.tsx");
@@ -44,10 +45,10 @@ const expectText = (text, value, label) => {
   "ACCESSIBILITY.md",
 ].forEach(expectFile);
 
-const handTracker = readFileSync(handTrackerPath, "utf8");
+const handTracker = readSources(handTrackerPath, resolve(root, "src/components/hand-tracker"));
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const bridge = readFileSync(bridgePath, "utf8");
-const access = readFileSync(accessPath, "utf8");
+const access = readSources(accessPath, resolve(root, "src/components/ryka-access"));
 
 if (packageJson.name !== "ryka-core") failures.push("Package name must remain ryka-core");
 if (packageJson.version !== "4.4.0") failures.push("Package version must be 4.4.0");
