@@ -126,7 +126,7 @@ describe("usePointerMode", () => {
     expect(result.current.active).toBe(true);
   });
 
-  it("switches itself off when no hand is seen for a while", async () => {
+  it("switches itself off when no hand is seen for a while", () => {
     const { result } = renderHook(() => usePointerMode(ready));
     act(() => result.current.toggle());
     const start = performance.now();
@@ -155,7 +155,7 @@ describe("usePointerMode", () => {
     ["the bridge locks", { locked: true }],
     ["the bridge goes offline", { bridgeOnline: false }],
     ["the permission is withdrawn", { permitted: false }],
-  ])("switches itself off when %s", async (_label, change) => {
+  ])("switches itself off when %s", (_label, change) => {
     const { result, rerender } = renderHook((props: PointerAvailability) => usePointerMode(props), {
       initialProps: ready,
     });
