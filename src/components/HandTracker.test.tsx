@@ -74,6 +74,7 @@ describe("HandTracker shell", () => {
       "SECURITY CENTER",
       "CAMERA MANAGER",
       "TRIGGER SAFETY",
+      "SWIPE CALIBRATION",
       "ACTION MAPPER",
       "LIVE GESTURES",
       "ACTION LOG",

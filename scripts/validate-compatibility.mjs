@@ -23,6 +23,7 @@ const expectText = (text, value, label) => {
   "src/lib/legacyEffects.ts",
   "src/lib/gestureEngine.ts",
   "src/lib/dynamicGesture.ts",
+  "src/lib/calibration.ts",
   "src/lib/desktopBridge.ts",
   "src/lib/orbScene.ts",
   "src/lib/accessibility.ts",
@@ -71,6 +72,7 @@ expectText(handTracker, "PROFILE_MAPS", "profile action maps");
 expectText(handTracker, "exportLogs", "JSON/CSV action log export");
 expectText(handTracker, "MUHAMMAD RAFI PRIYO", "developer branding");
 expectText(handTracker, "SECURITY CENTER", "security center UI");
+expectText(handTracker, "SWIPE CALIBRATION", "swipe calibration wizard");
 expectText(handTracker, "RYKA ACCESS", "accessibility suite launcher");
 expectText(handTracker, "RykaAccess", "accessibility component integration");
 expectText(handTracker, "EMERGENCY STOP", "emergency stop UI");

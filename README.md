@@ -79,6 +79,7 @@ Dokumentasi lengkap: [`ACCESSIBILITY.md`](ACCESSIBILITY.md).
 - Release-required dan anti-double-trigger.
 - Profile Presentation, Media, dan Custom.
 - Gesture Action Mapper.
+- **Swipe Calibration Wizard:** tiga swipe kiri-kanan dan tiga atas-bawah mengukur jarak dan kecepatan swipe Anda; ambang deteksi disesuaikan (dengan batas aman) dan disimpan lokal. Tanpa kalibrasi, ambang bawaan dipakai.
 
 ### Legacy Visual Effects
 
@@ -394,7 +395,6 @@ Navbar global menyediakan akses terpisah ke **CORE**, **ACCESS**, dan
 
 - Native desktop migration menggunakan Tauri.
 - Pointer, click, drag-and-drop, dan scroll dengan gesture.
-- Calibration Wizard.
 - Custom Gesture Builder.
 - Offline MediaPipe model dan checksum verification.
 - Wake word **Hey Ryka**.
