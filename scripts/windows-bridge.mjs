@@ -16,6 +16,11 @@ import {
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import {
+  PointerController,
+  parsePointerRequest,
+  spawnPowerShellHelper,
+} from "./pointer-driver.mjs";
 
 const HOST = "127.0.0.1";
 const PORT = 3210;
@@ -24,6 +29,8 @@ const SESSION_TTL_MS = 30 * 60 * 1000;
 const MAX_CLOCK_SKEW_MS = 10_000;
 const MAX_BODY_BYTES = 4096;
 const RATE_LIMIT_MAX = 5;
+// Pointer moves are frequent by nature, so /pointer has its own, higher bucket.
+const POINTER_RATE_LIMIT_MAX = 40;
 const RATE_LIMIT_WINDOW_MS = 1000;
 const FAILURE_LIMIT = 10;
 const FAILURE_LOCK_MS = 30_000;
@@ -79,7 +86,14 @@ const ACTION_CATEGORY = Object.freeze({
 const permissions = {
   presentation: true,
   media: true,
+  // Mouse control is opt-in: off at every start and after every emergency stop.
+  pointer: false,
 };
+
+const pointer = new PointerController({
+  spawnHelper: ({ onExit }) => spawnPowerShellHelper({ onExit }),
+  onEvent: (event) => audit(`pointer-${event}`),
+});
 
 const sessions = new Map();
 const failedClients = new Map();
@@ -226,17 +240,18 @@ function createSession() {
     expiresAt,
     nonces: new Map(),
     requests: [],
+    pointerRequests: [],
   });
   return { id, secret, expiresAt };
 }
 
-function consumeRateLimit(session) {
+function consumeRateLimit(session, isPointer = false) {
   const current = Date.now();
-  session.requests = session.requests.filter(
-    (time) => current - time < RATE_LIMIT_WINDOW_MS,
-  );
-  if (session.requests.length >= RATE_LIMIT_MAX) return false;
-  session.requests.push(current);
+  const key = isPointer ? "pointerRequests" : "requests";
+  const max = isPointer ? POINTER_RATE_LIMIT_MAX : RATE_LIMIT_MAX;
+  session[key] = session[key].filter((time) => current - time < RATE_LIMIT_WINDOW_MS);
+  if (session[key].length >= max) return false;
+  session[key].push(current);
   return true;
 }
 
@@ -286,7 +301,7 @@ function verifySignedRequest(req, body) {
     return { ok: false, status: 401, error: "Invalid request signature." };
   }
 
-  if (!consumeRateLimit(session)) {
+  if (!consumeRateLimit(session, req.url === "/pointer")) {
     return { ok: false, status: 429, error: "Desktop action rate limit exceeded." };
   }
 
@@ -381,6 +396,24 @@ public static class RykaMediaKey {
 Start-Sleep -Milliseconds 40;
 [RykaMediaKey]::keybd_event(${keyCode}, 0, 2, [UIntPtr]::Zero);
 `);
+}
+
+function executePointer(request) {
+  if (emergencyLocked) {
+    throw Object.assign(new Error("RYKA desktop control is emergency locked."), {
+      status: 423,
+    });
+  }
+  if (!permissions.pointer) {
+    throw Object.assign(new Error("pointer permission is disabled."), { status: 403 });
+  }
+  if (process.platform !== "win32") {
+    throw Object.assign(
+      new Error("Pointer control is currently supported on Windows only."),
+      { status: 501 },
+    );
+  }
+  pointer.handle(request);
 }
 
 function parseJson(body) {
@@ -478,13 +511,18 @@ const server = http.createServer(async (req, res) => {
       const payload = parseJson(body);
       if (
         typeof payload.presentation !== "boolean" ||
-        typeof payload.media !== "boolean"
+        typeof payload.media !== "boolean" ||
+        (payload.pointer !== undefined && typeof payload.pointer !== "boolean")
       ) {
         json(res, 400, { ok: false, error: "Invalid permission payload." });
         return;
       }
       permissions.presentation = payload.presentation;
       permissions.media = payload.media;
+      if (payload.pointer !== undefined) {
+        permissions.pointer = payload.pointer;
+        if (!permissions.pointer) pointer.stop("permission-revoked");
+      }
       audit("permissions-updated", {
         sessionId: verification.sessionId,
         permissions: { ...permissions },
@@ -495,6 +533,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && req.url === "/emergency-stop") {
       emergencyLocked = true;
+      permissions.pointer = false;
+      pointer.stop("emergency-stop");
       sessions.clear();
       audit("emergency-stop", { client: clientKey(req) });
       json(res, 200, { ok: true, emergencyLocked: true });
@@ -533,6 +573,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && req.url === "/pointer") {
+      if (!String(req.headers["content-type"] || "").startsWith("application/json")) {
+        json(res, 415, { ok: false, error: "Content-Type must be application/json." });
+        return;
+      }
+      executePointer(parsePointerRequest(parseJson(body)));
+      json(res, 200, { ok: true });
+      return;
+    }
+
     json(res, 404, { ok: false, error: "Not found." });
   } catch (error) {
     const status = Number.isInteger(error?.status) ? error.status : 500;
@@ -555,6 +605,7 @@ server.listen(PORT, HOST, () => {
 });
 
 function shutdown(signal) {
+  pointer.stop("shutdown");
   audit("bridge-stopped", { signal });
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(0), 800).unref();

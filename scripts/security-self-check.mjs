@@ -49,9 +49,22 @@ const requiredBridgeControls = [
   "Invalid Host header",
   "security-audit.jsonl",
   "emergencyLocked",
+  "POINTER_RATE_LIMIT_MAX",
+  "pointer permission is disabled",
 ];
 for (const marker of requiredBridgeControls) {
   if (!bridge.includes(marker)) fail(`Secure bridge control missing: ${marker}`);
+}
+
+const pointerDriver = read("scripts/pointer-driver.mjs");
+for (const marker of ["parsePointerRequest", "POINTER_OPS", "shell: false", "-EncodedCommand"]) {
+  if (!pointerDriver.includes(marker)) fail(`Pointer driver control missing: ${marker}`);
+}
+if (/Invoke-Expression|\biex\b/i.test(pointerDriver)) {
+  fail("Pointer helper must never evaluate input as code.");
+}
+if (!/permissions\s*=\s*\{[^}]*pointer:\s*false/s.test(bridge)) {
+  fail("Pointer permission must default to off.");
 }
 if (/ExecutionPolicy["',\s]+Bypass/i.test(bridge)) {
   fail("PowerShell ExecutionPolicy Bypass is prohibited.");
