@@ -2,15 +2,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { DEFAULT_SETTINGS } from "./constants";
 import { readLocal, saveLocal } from "./storage";
+import {
+  buildCommunicationCardHtml,
+  buildCommunicationCardText,
+  buildConfigurationSnapshot,
+  buildTranscript,
+} from "./exports";
+import {
+  sanitizeFavorites,
+  sanitizeGesturePhrases,
+  sanitizePersonalProfile,
+  sanitizeSettings,
+} from "./profileImport";
 import type { GestureKey } from "@/lib/gestureEngine";
-import type { AccessInputMode, AccessNeed, AccessRole, CommunicationEntry, PersonalAccessProfile } from "@/lib/accessibility";
+import type { CommunicationEntry, PersonalAccessProfile } from "@/lib/accessibility";
 import type { AccessSettings, AccessTab, CaptionLine, MessageSource, RykaAccessProps, SpeechRecognitionLike } from "./types";
 import {
-  ACCESS_GESTURES,
   ACCESS_GESTURE_LABELS,
-  ACCESS_INPUT_LABELS,
-  ACCESS_NEED_LABELS,
-  ACCESS_ROLE_LABELS,
   DEFAULT_GESTURE_PHRASES,
   DEFAULT_PERSONAL_PROFILE,
   PHRASE_CATEGORIES,
@@ -461,91 +469,22 @@ export function useRykaAccess(props: RykaAccessProps) {
       };
       if (parsed.format !== "ryka-access-profile") throw new Error("Format profil tidak dikenali");
 
-      const gestureSource = parsed.gesturePhrases && typeof parsed.gesturePhrases === "object"
-        ? parsed.gesturePhrases as Partial<Record<GestureKey, unknown>>
-        : {};
-      const nextGesturePhrases = { ...DEFAULT_GESTURE_PHRASES };
-      for (const gesture of ACCESS_GESTURES) {
-        const value = gestureSource[gesture];
-        if (typeof value === "string") nextGesturePhrases[gesture] = normalizePhrase(value);
-      }
-      setGesturePhrases(nextGesturePhrases);
+      setGesturePhrases(sanitizeGesturePhrases(parsed.gesturePhrases));
 
       if (Array.isArray(parsed.favorites)) {
         setFavorites(
-          parsed.favorites
-            .filter((item): item is string => typeof item === "string")
-            .map(normalizePhrase)
-            .filter(Boolean)
-            .slice(0, 12),
+          sanitizeFavorites(parsed.favorites),
         );
       }
 
       if (parsed.settings && typeof parsed.settings === "object") {
         const source = parsed.settings as Record<string, unknown>;
-        const allowedInputModes: Array<AccessInputMode> = ["touch", "keyboard", "switch", "dwell", "gesture"];
-        setSettings((current) => ({
-          ...current,
-          autoSpeak: typeof source.autoSpeak === "boolean" ? source.autoSpeak : current.autoSpeak,
-          confirmGesture: typeof source.confirmGesture === "boolean" ? source.confirmGesture : current.confirmGesture,
-          saveHistory: typeof source.saveHistory === "boolean" ? source.saveHistory : current.saveHistory,
-          largeText: typeof source.largeText === "boolean" ? source.largeText : current.largeText,
-          highContrast: typeof source.highContrast === "boolean" ? source.highContrast : current.highContrast,
-          reducedMotion: typeof source.reducedMotion === "boolean" ? source.reducedMotion : current.reducedMotion,
-          privateSession: typeof source.privateSession === "boolean" ? source.privateSession : current.privateSession,
-          speechRate: typeof source.speechRate === "number" ? Math.min(1.8, Math.max(0.5, source.speechRate)) : current.speechRate,
-          speechVolume: typeof source.speechVolume === "number" ? Math.min(1, Math.max(0, source.speechVolume)) : current.speechVolume,
-          voiceUri: typeof source.voiceUri === "string" ? source.voiceUri.slice(0, 300) : current.voiceUri,
-          language: typeof source.language === "string" ? source.language.slice(0, 20) : current.language,
-          soundThreshold: typeof source.soundThreshold === "number" ? Math.min(95, Math.max(25, source.soundThreshold)) : current.soundThreshold,
-          inputMode: typeof source.inputMode === "string" && allowedInputModes.includes(source.inputMode as AccessInputMode)
-            ? source.inputMode as AccessInputMode
-            : current.inputMode,
-          scanningIntervalMs: typeof source.scanningIntervalMs === "number"
-            ? Math.min(3000, Math.max(700, source.scanningIntervalMs))
-            : current.scanningIntervalMs,
-          dwellMs: typeof source.dwellMs === "number"
-            ? Math.min(3000, Math.max(500, source.dwellMs))
-            : current.dwellMs,
-          autoDeleteMinutes: typeof source.autoDeleteMinutes === "number" && [0, 5, 15, 60, 1440].includes(source.autoDeleteMinutes)
-            ? source.autoDeleteMinutes
-            : current.autoDeleteMinutes,
-          captionScale: typeof source.captionScale === "number"
-            ? Math.min(1.8, Math.max(0.8, source.captionScale))
-            : current.captionScale,
-        }));
+        setSettings((current) => sanitizeSettings(source, current));
       }
 
       if (parsed.personalProfile && typeof parsed.personalProfile === "object") {
         const source = parsed.personalProfile as Record<string, unknown>;
-        const allowedRoles: Array<AccessRole> = ["user", "caregiver", "professional"];
-        const allowedNeeds: Array<AccessNeed> = ["speech", "hearing", "motor", "emergency", "low-vision"];
-        const allowedInputs: Array<AccessInputMode> = ["touch", "keyboard", "switch", "dwell", "gesture"];
-        const allowedHands: Array<PersonalAccessProfile["dominantHand"]> = ["right", "left", "either"];
-        const allowedEnvironments: Array<PersonalAccessProfile["environment"]> = ["home", "school", "work", "healthcare", "mixed"];
-        const allowedReading: Array<PersonalAccessProfile["readingSupport"]> = ["text", "text-symbol", "symbol"];
-        const needs = Array.isArray(source.needs)
-          ? source.needs.filter((item): item is AccessNeed => typeof item === "string" && allowedNeeds.includes(item as AccessNeed)).slice(0, allowedNeeds.length)
-          : [];
-        setPersonalProfile((current) => ({
-          ...current,
-          completed: true,
-          displayName: typeof source.displayName === "string" ? source.displayName.trim().slice(0, 60) : current.displayName,
-          role: typeof source.role === "string" && allowedRoles.includes(source.role as AccessRole) ? source.role as AccessRole : current.role,
-          needs: needs.length ? needs : current.needs,
-          inputMode: typeof source.inputMode === "string" && allowedInputs.includes(source.inputMode as AccessInputMode)
-            ? source.inputMode as AccessInputMode
-            : current.inputMode,
-          dominantHand: typeof source.dominantHand === "string" && allowedHands.includes(source.dominantHand as PersonalAccessProfile["dominantHand"])
-            ? source.dominantHand as PersonalAccessProfile["dominantHand"]
-            : current.dominantHand,
-          environment: typeof source.environment === "string" && allowedEnvironments.includes(source.environment as PersonalAccessProfile["environment"])
-            ? source.environment as PersonalAccessProfile["environment"]
-            : current.environment,
-          readingSupport: typeof source.readingSupport === "string" && allowedReading.includes(source.readingSupport as PersonalAccessProfile["readingSupport"])
-            ? source.readingSupport as PersonalAccessProfile["readingSupport"]
-            : current.readingSupport,
-        }));
+        setPersonalProfile((current) => sanitizePersonalProfile(source, current));
       }
 
       setProfileImportError(null);
@@ -567,11 +506,7 @@ export function useRykaAccess(props: RykaAccessProps) {
   }, []);
 
   const exportTranscript = useCallback(() => {
-    const text = captions
-      .slice()
-      .reverse()
-      .map((line) => `[${line.time}] ${line.speaker}: ${line.text}`)
-      .join("\n");
+    const text = buildTranscript(captions);
     if (!text) {
       toast.error("BELUM ADA TRANSKRIP UNTUK DIEKSPOR");
       return;
@@ -580,64 +515,27 @@ export function useRykaAccess(props: RykaAccessProps) {
   }, [captions, downloadText]);
 
   const exportAccessAssessment = useCallback(() => {
-    const lines = [
-      "RYKA ACCESS 4.4 — CONFIGURATION SNAPSHOT",
-      `Generated: ${new Date().toISOString()}`,
-      `Display name: ${personalProfile.displayName || "Not provided"}`,
-      `Role: ${ACCESS_ROLE_LABELS[personalProfile.role]}`,
-      `Needs: ${personalProfile.needs.map((need) => ACCESS_NEED_LABELS[need]).join(", ")}`,
-      `Input mode: ${ACCESS_INPUT_LABELS[settings.inputMode]}`,
-      `Dominant hand: ${personalProfile.dominantHand}`,
-      `Environment: ${personalProfile.environment}`,
-      `Reading support: ${personalProfile.readingSupport}`,
-      `Large text: ${settings.largeText}`,
-      `High contrast: ${settings.highContrast}`,
-      `Reduced motion: ${settings.reducedMotion}`,
-      `Switch interval: ${settings.scanningIntervalMs} ms`,
-      `Dwell time: ${settings.dwellMs} ms`,
-      "",
-      "This file is a configuration snapshot, not a clinical assessment or diagnosis.",
-    ];
-    downloadText(`ryka-access-configuration-${Date.now()}.txt`, lines.join("\n"));
+    downloadText(
+      `ryka-access-configuration-${Date.now()}.txt`,
+      buildConfigurationSnapshot(personalProfile, settings, new Date().toISOString()),
+    );
   }, [downloadText, personalProfile, settings]);
 
   const exportCommunicationCard = useCallback(() => {
-    const emergency = PHRASE_CATEGORIES.find((item) => item.id === "emergency")?.phrases ?? [];
-    const lines = [
-      "RYKA ACCESS — KARTU KOMUNIKASI",
-      personalProfile.displayName ? `Nama: ${personalProfile.displayName}` : "Nama: ____________________",
-      "",
-      "Saya mungkin membutuhkan waktu untuk berkomunikasi.",
-      "Silakan gunakan kalimat singkat, tulisan, atau pilihan YA/TIDAK.",
-      "",
-      "PESAN FAVORIT:",
-      ...(favorites.length ? favorites : ["Ya.", "Tidak.", "Tolong ulangi."]).map((item) => `- ${item}`),
-      "",
-      "DARURAT:",
-      ...emergency.map((item) => `- ${item}`),
-    ];
-    downloadText(`ryka-communication-card-${Date.now()}.txt`, lines.join("\n"));
+    downloadText(
+      `ryka-communication-card-${Date.now()}.txt`,
+      buildCommunicationCardText(personalProfile.displayName, favorites),
+    );
   }, [downloadText, favorites, personalProfile.displayName]);
 
   const printCommunicationCard = useCallback(() => {
-    const safe = (value: string) => value.replace(/[&<>"']/g, (character) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    })[character] ?? character);
     const popup = window.open("", "_blank");
     if (!popup) {
       toast.error("POP-UP DIBLOKIR. IZINKAN POP-UP UNTUK MENCETAK KARTU.");
       return;
     }
     popup.opener = null;
-    const emergency = PHRASE_CATEGORIES.find((item) => item.id === "emergency")?.phrases ?? [];
-    const favoriteMarkup = (favorites.length ? favorites : ["Ya.", "Tidak.", "Tolong ulangi."])
-      .map((item) => `<li>${safe(item)}</li>`).join("");
-    const emergencyMarkup = emergency.map((item) => `<li>${safe(item)}</li>`).join("");
-    popup.document.write(`<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Kartu Komunikasi RYKA</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#0f172a}h1{color:#0369a1}section{border:2px solid #0ea5e9;border-radius:16px;padding:18px;margin:16px 0}li{font-size:20px;margin:10px 0}.note{font-size:22px;font-weight:700;background:#e0f2fe;padding:18px;border-radius:14px}@media print{button{display:none}}</style></head><body><h1>RYKA ACCESS — KARTU KOMUNIKASI</h1><p><strong>Nama:</strong> ${safe(personalProfile.displayName || "____________________")}</p><p class="note">Saya mungkin membutuhkan waktu untuk berkomunikasi. Silakan gunakan kalimat singkat, tulisan, atau pertanyaan YA/TIDAK.</p><section><h2>Pesan favorit</h2><ul>${favoriteMarkup}</ul></section><section><h2>Darurat</h2><ul>${emergencyMarkup}</ul></section><button onclick="window.print()">Cetak / Simpan PDF</button></body></html>`);
+    popup.document.write(buildCommunicationCardHtml(personalProfile.displayName, favorites));
     popup.document.close();
     popup.focus();
   }, [favorites, personalProfile.displayName]);
