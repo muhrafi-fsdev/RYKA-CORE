@@ -29,7 +29,7 @@
     "@tailwindcss/vite": "4.3.3",
     "@tanstack/react-query": "5.90.16",
     "@tanstack/react-router": "1.170.18",
-    "@tanstack/react-start": "1.168.32",
+    "@tanstack/react-start": "1.168.61",
     "buffer": "6.0.3",
     "clsx": "2.1.1",
     "gsap": "3.14.2",
@@ -43,7 +43,7 @@
     "tailwindcss": "4.3.3",
     "three": "0.185.1",
     "vite-tsconfig-paths": "6.0.4",
-    "zod": "4.3.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@tanstack/eslint-config": "0.3.4",
@@ -56,15 +56,14 @@
     "@vitejs/plugin-react": "5.1.2",
     "jsdom": "27.4.0",
     "prettier": "3.7.4",
-    "shadcn": "3.6.3",
     "typescript": "5.9.3",
-    "vite": "7.3.6",
-    "vitest": "3.2.7",
+    "vite": "7.3.7",
+    "vitest": "5.0.5",
     "web-vitals": "5.1.0"
   },
   "version": "4.4.0",
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=22.12.0",
     "npm": ">=10.0.0"
   }
 }
