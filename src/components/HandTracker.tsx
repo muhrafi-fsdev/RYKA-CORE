@@ -1451,7 +1451,7 @@ export default function HandTracker() {
             disabled={camera === "starting"}
           >
             {camera === "starting"
-              ? "INITIALIZINGâ€¦"
+              ? "INITIALIZING…"
               : camera === "on"
                 ? "GESTURES ON"
                 : "GESTURES OFF"}
@@ -1486,7 +1486,7 @@ export default function HandTracker() {
             className="ultron-button"
             onClick={() => sceneRef.current?.zoomOut()}
           >
-            âˆ’
+            −
           </button>
           <button
             type="button"
@@ -1505,7 +1505,7 @@ export default function HandTracker() {
             <small>ACCESSIBILITY + LEGACY VISUALS + HMAC SECURITY + WINDOWS BRIDGE</small>
           </div>
           <button type="button" onClick={() => setPanelOpen(false)}>
-            Ã—
+            ×
           </button>
         </div>
 
@@ -1613,7 +1613,7 @@ export default function HandTracker() {
           <section className="ultron-panel-section">
             <h2>RAFI HANDMOTION COMPATIBILITY</h2>
             <p className="ultron-safety-note">
-              Legacy controls are preserved: 1â€“4 hands, skeleton, landmarks,
+              Legacy controls are preserved: 1–4 hands, skeleton, landmarks,
               mirror, Blur, Mosaic, and Flip 180°. All settings persist locally.
             </p>
             <div className="ultron-camera-config">
@@ -1731,7 +1731,7 @@ export default function HandTracker() {
               />
             </label>
             <label>
-              <span>MOTION SMOOTHING // 1â‚¬ FILTER</span>
+              <span>MOTION SMOOTHING // 1€ FILTER</span>
               <strong>{motionSmoothing}%</strong>
               <input
                 type="range"
@@ -1780,9 +1780,9 @@ export default function HandTracker() {
                     setQuality(value);
                   }}
                 >
-                  <option value="performance">PERFORMANCE // 640Ã—360</option>
-                  <option value="balanced">BALANCED // 960Ã—540</option>
-                  <option value="quality">QUALITY // 1280Ã—720</option>
+                  <option value="performance">PERFORMANCE // 640×360</option>
+                  <option value="balanced">BALANCED // 960×540</option>
+                  <option value="quality">QUALITY // 1280×720</option>
                 </select>
               </label>
               <label className="ultron-check-row">
