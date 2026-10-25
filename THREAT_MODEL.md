@@ -30,12 +30,19 @@
 | Secret committed to source | Security self-check, `.gitignore`, CodeQL/dependency workflows |
 | Vulnerable package introduced | Exact direct versions, npm audit, Dependency Review, Dependabot |
 | Framing or content-type attacks | CSP, frame denial, nosniff, no-store, permissions policy |
+| Mouse control enabled by accident or by another page | Separate `pointer` permission, off at every start and revoked by emergency stop; same signed-session checks as every route |
+| Pointer input injected into the PowerShell helper | Strict request validation (operation allowlist, numbers 0..1, no extra fields); the bridge builds each helper line itself; helper matches fixed patterns case-sensitively and never evaluates input; started with `-EncodedCommand`, `shell: false` |
+| Mouse flooding or a stuck button | Separate 40/s pointer limit, client throttle, held button released after 2 s of silence, on stop and on emergency stop; helper stops when idle |
+| Operator forgets the pointer is active | POINTER ACTIVE status, automatic stop when the hand is lost for 5 s, the camera stops or control locks |
 
 ## Residual risks
 
 - A compromised browser process or injected same-origin script can access runtime session material.
 - Remote MediaPipe resources remain a supply-chain dependency until the model and WASM assets are vendored and checksum-verified.
 - The current bridge is development-oriented; a future Tauri/Rust migration will remove the localhost HTTP boundary.
+- While pointer mode is active it can click anything under the cursor on the primary screen. Use it attended, and keep Ctrl + Shift + F12 in mind.
+- If the pointer helper process is killed while the button is held, Windows keeps the button down until a physical click; the bridge records `pointer-helper-exited-while-pressed` in the audit log.
+- Pointer control covers the primary monitor only and has no right click or scroll yet.
 
 
 ## Accessibility and Communication Data

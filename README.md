@@ -109,6 +109,7 @@ Seluruh efek dari Rafi HandMotion Modified tetap tersedia:
 - Volume naik/turun.
 - Next/previous track.
 - Emergency stop.
+- **Pointer Mode (opsional, default mati):** ujung telunjuk menggerakkan kursor Windows, cubit jempol-telunjuk = klik, tahan = drag. Butuh izin **POINTER (MOUSE) CONTROL** di Security Center; berhenti otomatis bila tangan hilang 5 detik, kontrol terkunci, atau emergency stop. Bisa dinyalakan dari panel SYS atau gestur yang dipetakan ke `POINTER MODE` (Thumb Up pada profil Presentation, saat sistem armed).
 
 > Desktop action hanya menerima perintah yang terdapat dalam allowlist. RYKA CORE tidak menyediakan eksekusi PowerShell mentah dari antarmuka pengguna.
 
@@ -394,7 +395,7 @@ Navbar global menyediakan akses terpisah ke **CORE**, **ACCESS**, dan
 ## Roadmap
 
 - Native desktop migration menggunakan Tauri.
-- Pointer, click, drag-and-drop, dan scroll dengan gesture.
+- Scroll dan klik kanan dengan gesture (pointer, klik, dan drag sudah tersedia).
 - Custom Gesture Builder.
 - Offline MediaPipe model dan checksum verification.
 - Wake word **Hey Ryka**.
